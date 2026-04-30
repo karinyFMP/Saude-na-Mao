@@ -1,5 +1,6 @@
-
 #  Saúde na Mão
+
+![SQLite](https://img.shields.io/badge/SQLite-Database-lightgrey?logo=sqlite) ![React](https://img.shields.io/badge/React-Frontend-blue?logo=react) ![Vite](https://img.shields.io/badge/Vite-Build%20Tool-purple?logo=vite) ![Express](https://img.shields.io/badge/Express-Backend-black?logo=express) ![JavaScript](https://img.shields.io/badge/JavaScript-Language-yellow?logo=javascript)
 
 O **Saúde na Mão** é uma plataforma web desenvolvida para modernizar e facilitar o acesso a cuidados primários de saúde. O sistema foca na autonomia do paciente e na transparência do fluxo de atendimento, seja público ou privado.
 
