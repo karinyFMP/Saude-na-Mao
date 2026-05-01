@@ -1,0 +1,7 @@
+/* App-level styles are minimal — component CSS handles the rest */
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-body);
+}
