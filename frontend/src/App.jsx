@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import Agendamento from './components/Agendamento';
 import Protocolos from './components/Protocolos';
 import UnidadesSaude from './components/UnidadesSaude';
+import Perfil from './components/Perfil';
 
 function App() {
   const [page, setPage] = useState('login');
@@ -61,6 +62,13 @@ function App() {
       {page === 'unidades' && (
         <UnidadesSaude
           onBack={() => handleNavigate(paciente ? 'dashboard' : 'login')}
+        />
+      )}
+
+      {page === 'perfil' && paciente && (
+        <Perfil 
+          paciente={paciente} 
+          onBack={() => handleNavigate('dashboard')} 
         />
       )}
     </div>

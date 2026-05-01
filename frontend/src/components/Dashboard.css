@@ -505,7 +505,7 @@
   font-size: 0.7rem;
   font-weight: 500;
   padding: var(--space-xs);
-  min-width: 60px;
+  min-width: 50px;
   transition: color var(--transition-fast);
 }
 
@@ -547,10 +547,27 @@
   }
 
   .dash-bottom-nav {
-    display: none;
+    display: flex;
   }
 
   .dashboard {
     padding-bottom: var(--space-xl);
   }
+}
+
+.btn-perfil-custom {
+  color: var(--primary); /* Usa o azul padrão do site */
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  gap: 4px;
+}
+
+.btn-perfil-custom:hover {
+  filter: brightness(1.2); /* Dá um leve brilho ao passar o mouse */
+  transform: scale(1.05); /* Aumenta o tamanho bem sutilmente */
 }

@@ -306,6 +306,16 @@ export default function Dashboard({ paciente, refreshKey, onNavigate, onLogout }
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           <span>Protocolos</span>
         </button>
+        <button 
+          className={`dash-nav-item ${onNavigate === 'perfil' ? 'dash-nav-item-active' : ''}`} 
+          onClick={() => onNavigate('perfil')}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span style={{ fontWeight: '600' }}>Perfil</span>
+        </button>
         <button className="dash-nav-item" onClick={() => onNavigate('unidades')}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>UBS</span>
