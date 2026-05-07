@@ -69,6 +69,7 @@ function App() {
         <Perfil 
           paciente={paciente} 
           onBack={() => handleNavigate('dashboard')} 
+          onUpdatePaciente={(dadosAtualizados) => setPaciente(dadosAtualizados)}
         />
       )}
     </div>

@@ -45,6 +45,85 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+// POST /api/register — Cadastro de novo paciente
+app.post('/api/register', async (req, res) => {
+  const { nome, cpf, senha, cartao_sus } = req.body;
+
+  if (!nome || !cpf || !senha) {
+    return res.status(400).json({ error: 'Nome, CPF e senha são obrigatórios.' });
+  }
+
+  db.get('SELECT id FROM pacientes WHERE cpf = ?', [cpf], async (err, pacienteExistente) => {
+    if (err) {
+      return res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+
+    if (pacienteExistente) {
+      return res.status(409).json({ error: 'CPF já cadastrado.' });
+    }
+
+    try {
+      const senhaHash = await bcrypt.hash(senha, 10);
+      
+      db.run(
+        'INSERT INTO pacientes (nome, cpf, senha, cartao_sus, unidade) VALUES (?, ?, ?, ?, ?)',
+        [nome, cpf, senhaHash, cartao_sus || null, 'UBS Central'],
+        function (err) {
+          if (err) {
+            return res.status(500).json({ error: 'Erro ao cadastrar paciente.' });
+          }
+
+          db.get('SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?', [this.lastID], (err, paciente) => {
+            if (err) {
+              return res.status(500).json({ error: 'Erro ao buscar dados do paciente recém-cadastrado.' });
+            }
+            res.status(201).json({
+              message: 'Cadastro realizado com sucesso!',
+              paciente: paciente
+            });
+          });
+        }
+      );
+    } catch (hashError) {
+      return res.status(500).json({ error: 'Erro ao processar a senha.' });
+    }
+  });
+});
+
+// PUT /api/pacientes/:id — Atualizar dados do paciente
+app.put('/api/pacientes/:id', (req, res) => {
+  const { id } = req.params;
+  const { nome, telefone, endereco, cpf, cartao_sus, unidade, data_nascimento } = req.body;
+
+  db.run(
+    'UPDATE pacientes SET nome = ?, telefone = ?, endereco = ?, cpf = ?, cartao_sus = ?, unidade = ?, data_nascimento = ? WHERE id = ?',
+    [nome, telefone, endereco, cpf, cartao_sus, unidade, data_nascimento, id],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ error: 'Erro ao atualizar dados do paciente.' });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Paciente não encontrado.' });
+      }
+
+      db.get(
+        'SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?',
+        [id],
+        (err, paciente) => {
+          if (err) {
+            return res.status(500).json({ error: 'Erro ao buscar dados atualizados.' });
+          }
+          res.json({
+            message: 'Perfil atualizado com sucesso!',
+            paciente
+          });
+        }
+      );
+    }
+  );
+});
+
 // ============================================================
 // ROTAS DO DASHBOARD
 // ============================================================
@@ -55,7 +134,7 @@ app.get('/api/dashboard/:pacienteId', (req, res) => {
 
   // Buscar dados do paciente
   db.get(
-    'SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone FROM pacientes WHERE id = ?',
+    'SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?',
     [pacienteId],
     (err, paciente) => {
       if (err) {

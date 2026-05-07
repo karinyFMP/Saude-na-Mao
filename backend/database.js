@@ -46,6 +46,7 @@ async function initializeDatabase() {
       data_nascimento TEXT,
       cartao_sus TEXT,
       telefone TEXT,
+      endereco TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);

@@ -121,16 +121,16 @@ export default function Dashboard({ paciente, refreshKey, onNavigate, onLogout }
             </button>
           </div>
           <div className="dash-patient-card">
-            <div className="dash-patient-avatar">{data?.paciente?.nome?.charAt(0) || 'P'}</div>
+            <div className="dash-patient-avatar">{paciente?.nome?.charAt(0) || 'P'}</div>
             <div className="dash-patient-info">
-              <p className="dash-patient-name">{data?.paciente?.nome}</p>
+              <p className="dash-patient-name">{paciente?.nome}</p>
               <p className="dash-patient-detail">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                CNS: {data?.paciente?.cartao_sus || '—'}
+                <strong>CNS:</strong> {paciente?.cartao_sus || '—'}
               </p>
               <p className="dash-patient-detail">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                {data?.paciente?.unidade || '—'}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <strong>UBS:</strong> {paciente?.unidade || 'UBS Central'}
               </p>
             </div>
           </div>

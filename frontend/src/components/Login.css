@@ -245,6 +245,30 @@
   margin-top: 2px;
 }
 
+/* Mode Toggle */
+.login-mode-toggle {
+  margin-top: var(--space-lg);
+  text-align: center;
+}
+
+.login-mode-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  display: inline-block;
+}
+
+.login-mode-toggle-btn:hover {
+  color: var(--primary-dark);
+  background: var(--primary-bg);
+  text-decoration: underline;
+}
+
 /* Footer */
 .login-footer {
   text-align: center;

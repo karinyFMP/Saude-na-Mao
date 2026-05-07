@@ -11,6 +11,22 @@ export async function login(cpf, senha) {
   return data;
 }
 
+export async function register(nome, cpf, senha, cartao_sus) {
+  const res = await fetch(`${API_URL}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      nome, 
+      cpf, 
+      senha, 
+      cartao_sus 
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar.');
+  return data;
+}
+
 export async function getDashboard(pacienteId) {
   const res = await fetch(`${API_URL}/dashboard/${pacienteId}`);
   const data = await res.json();
@@ -66,5 +82,16 @@ export async function getProtocolos(pacienteId) {
   const res = await fetch(`${API_URL}/protocolos/${pacienteId}`);
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Erro ao buscar protocolos.');
+  return data;
+}
+
+export async function updatePaciente(pacienteId, dados) {
+  const res = await fetch(`${API_URL}/pacientes/${pacienteId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro ao atualizar perfil.');
   return data;
 }

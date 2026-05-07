@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { login } from '../services/api';
+import { login, register } from '../services/api';
 import './Login.css';
 import logoImg from '../assets/images/icone.png';
 
 export default function Login({ onLogin }) {
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
+  const [cartao_sus, setCartao_sus] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
@@ -19,29 +22,65 @@ export default function Login({ onLogin }) {
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   };
 
+  // Máscara de CNS (Cartão SUS) - Formato: 000 0000 0000 0000
+  const formatCNS = (value) => {
+    const nums = value.replace(/\D/g, '').slice(0, 15);
+    return nums
+      .replace(/(\d{3})(\d)/, '$1 $2')
+      .replace(/(\d{4})(\d)/, '$1 $2')
+      .replace(/(\d{4})(\d)/, '$1 $2');
+  };
+
   const handleCPFChange = (e) => {
     setCpf(formatCPF(e.target.value));
     setErro('');
   };
 
+  const handleCNSChange = (e) => {
+    setCartao_sus(formatCNS(e.target.value));
+    setErro('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!cpf || !senha) {
-      setErro('Preencha todos os campos.');
-      return;
+    
+    if (isRegistering) {
+      if (!nome || !cpf || !senha || !cartao_sus) {
+        setErro('Preencha todos os campos obrigatórios.');
+        return;
+      }
+    } else {
+      if (!cpf || !senha) {
+        setErro('Preencha todos os campos.');
+        return;
+      }
     }
 
     setLoading(true);
     setErro('');
 
     try {
-      const data = await login(cpf, senha);
-      onLogin(data.paciente);
+      if (isRegistering) {
+        const data = await register(nome, cpf, senha, cartao_sus);
+        onLogin(data.paciente);
+      } else {
+        const data = await login(cpf, senha);
+        onLogin(data.paciente);
+      }
     } catch (err) {
       setErro(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleMode = () => {
+    setIsRegistering(!isRegistering);
+    setErro('');
+    setNome('');
+    setCpf('');
+    setCartao_sus('');
+    setSenha('');
   };
 
   return (
@@ -65,8 +104,14 @@ export default function Login({ onLogin }) {
 
         {/* Login Card */}
         <form className="login-card" onSubmit={handleSubmit}>
-          <h2 className="login-card-title">Entrar na sua conta</h2>
-          <p className="login-card-desc">Use seu CPF e senha para acessar</p>
+          <h2 className="login-card-title">
+            {isRegistering ? 'Criar sua conta' : 'Entrar na sua conta'}
+          </h2>
+          <p className="login-card-desc">
+            {isRegistering 
+              ? 'Preencha os dados abaixo para se cadastrar' 
+              : 'Use seu CPF e senha para acessar'}
+          </p>
 
           {erro && (
             <div className="login-error" role="alert">
@@ -79,12 +124,52 @@ export default function Login({ onLogin }) {
             </div>
           )}
 
+          {isRegistering && (
+            <div className="login-field">
+              <label htmlFor="nome">Nome Completo</label>
+              <div className="login-input-wrapper">
+                <svg className="login-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input
+                  id="nome"
+                  type="text"
+                  placeholder="Seu nome completo"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  autoComplete="name"
+                />
+              </div>
+            </div>
+          )}
+
+          {isRegistering && (
+            <div className="login-field">
+              <label htmlFor="cns">Cartão Nacional de Saúde (CNS)</label>
+              <div className="login-input-wrapper">
+                <svg className="login-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <line x1="12" y1="4" x2="12" y2="20"/>
+                </svg>
+                <input
+                  id="cns"
+                  type="text"
+                  placeholder="000 0000 0000 0000"
+                  value={cartao_sus}
+                  onChange={handleCNSChange}
+                  maxLength={18}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="login-field">
             <label htmlFor="cpf">CPF</label>
             <div className="login-input-wrapper">
               <svg className="login-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
+                <rect x="3" y="4" width="18" height="16" rx="2"/>
+                <path d="M7 8h10M7 12h10M7 16h10"/>
               </svg>
               <input
                 id="cpf"
@@ -143,7 +228,7 @@ export default function Login({ onLogin }) {
               <div className="login-spinner" />
             ) : (
               <>
-                Entrar
+                {isRegistering ? 'Cadastrar' : 'Entrar'}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -151,15 +236,16 @@ export default function Login({ onLogin }) {
             )}
           </button>
 
-          <div className="login-demo-info">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
-            <span>
-              Demo: CPF <strong>123.456.789-00</strong> — Senha <strong>123456</strong>
-            </span>
+          <div className="login-mode-toggle">
+            <button 
+              type="button" 
+              onClick={toggleMode}
+              className="login-mode-toggle-btn"
+            >
+              {isRegistering 
+                ? 'Já possui uma conta? Faça login' 
+                : 'Não tem uma conta? Cadastre-se'}
+            </button>
           </div>
         </form>
 
@@ -170,3 +256,4 @@ export default function Login({ onLogin }) {
     </div>
   );
 }
+
