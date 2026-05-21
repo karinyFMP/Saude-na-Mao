@@ -52,10 +52,16 @@ export async function getUBS() {
   return data;
 }
 
-export async function getMedicos(especialidade) {
-  const url = especialidade
-    ? `${API_URL}/medicos?especialidade=${encodeURIComponent(especialidade)}`
-    : `${API_URL}/medicos`;
+export async function getMedicos(especialidade, unidade) {
+  let url = `${API_URL}/medicos`;
+  const params = new URLSearchParams();
+  if (especialidade) params.append('especialidade', especialidade);
+  if (unidade) params.append('unidade', unidade);
+  
+  if (params.toString()) {
+    url += `?${params.toString()}`;
+  }
+
   const res = await fetch(url);
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Erro ao buscar médicos.');

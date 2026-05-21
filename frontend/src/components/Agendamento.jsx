@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getEspecialidades, getMedicos, getUBS, agendarConsulta } from '../services/api';
+import { getMedicos, getUBS, agendarConsulta } from '../services/api';
 import './Agendamento.css';
 
 export default function Agendamento({ paciente, onBack, onSuccess }) {
-  const [especialidades, setEspecialidades] = useState([]);
   const [medicos, setMedicos] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +11,7 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
   const [erro, setErro] = useState('');
 
   const [form, setForm] = useState({
-    especialidade: '',
+    especialidade: 'Clínico Geral',
     medico: '',
     unidade: '',
     data: '',
@@ -24,18 +23,18 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
   }, []);
 
   useEffect(() => {
-    if (form.especialidade) {
-      getMedicos(form.especialidade).then(setMedicos).catch(() => {});
+    if (form.especialidade && form.unidade) {
+      getMedicos(form.especialidade, form.unidade).then(setMedicos).catch(() => {});
       setForm((prev) => ({ ...prev, medico: '' }));
     } else {
       setMedicos([]);
+      setForm((prev) => ({ ...prev, medico: '' }));
     }
-  }, [form.especialidade]);
+  }, [form.especialidade, form.unidade]);
 
   const loadData = async () => {
     try {
-      const [esp, ubs] = await Promise.all([getEspecialidades(), getUBS()]);
-      setEspecialidades(esp);
+      const ubs = await getUBS();
       setUnidades(ubs);
     } catch (err) {
       setErro('Erro ao carregar dados.');
@@ -54,7 +53,7 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
     e.preventDefault();
     const { especialidade, medico, data, horario, unidade } = form;
 
-    if (!especialidade || !medico || !data || !horario) {
+    if (!especialidade || !unidade || !medico || !data || !horario) {
       setErro('Preencha todos os campos obrigatórios.');
       return;
     }
@@ -140,7 +139,7 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
               <line x1="12" y1="16" x2="12" y2="12"/>
               <line x1="12" y1="8" x2="12.01" y2="8"/>
             </svg>
-            <p>Selecione a especialidade, médico, data e horário para sua consulta.</p>
+            <p>Selecione a Unidade de Saúde, médico, data e horário para sua consulta.</p>
           </div>
 
           {erro && (
@@ -154,20 +153,20 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
             </div>
           )}
 
-          {/* Especialidade */}
+          {/* Unidade */}
           <div className="agend-field">
-            <label htmlFor="especialidade">
-              Especialidade <span className="agend-required">*</span>
+            <label htmlFor="unidade">
+              Unidade de Saúde <span className="agend-required">*</span>
             </label>
             <select
-              id="especialidade"
-              name="especialidade"
-              value={form.especialidade}
+              id="unidade"
+              name="unidade"
+              value={form.unidade}
               onChange={handleChange}
             >
-              <option value="">Selecione a especialidade</option>
-              {especialidades.map((esp) => (
-                <option key={esp} value={esp}>{esp}</option>
+              <option value="">Selecione a Unidade de Saúde</option>
+              {unidades.map((u) => (
+                <option key={u.id} value={u.nome}>{u.nome}</option>
               ))}
             </select>
           </div>
@@ -182,31 +181,15 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
               name="medico"
               value={form.medico}
               onChange={handleChange}
-              disabled={!form.especialidade}
+              disabled={!form.unidade}
             >
               <option value="">
-                {form.especialidade ? 'Selecione o médico' : 'Escolha uma especialidade primeiro'}
+                {form.unidade ? 'Selecione o médico Clínico Geral' : 'Selecione uma Unidade de Saúde primeiro'}
               </option>
               {medicos.map((med) => (
                 <option key={med.id} value={med.nome}>
                   {med.nome} — {med.unidade_nome}
                 </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Unidade */}
-          <div className="agend-field">
-            <label htmlFor="unidade">Unidade de Saúde</label>
-            <select
-              id="unidade"
-              name="unidade"
-              value={form.unidade}
-              onChange={handleChange}
-            >
-              <option value="">Selecione (opcional)</option>
-              {unidades.map((u) => (
-                <option key={u.id} value={u.nome}>{u.nome}</option>
               ))}
             </select>
           </div>
