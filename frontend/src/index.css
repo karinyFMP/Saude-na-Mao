@@ -7,20 +7,20 @@
 /* CSS Custom Properties (Design Tokens) */
 :root {
   /* Primary Palette - Identidade DataSUS / gov.br */
-  --primary-dark: #0C326F;
+  --primary-dark: #002F6C;
   --primary: #1351B4;
   --primary-light: #2670E8;
   --primary-lighter: #6BA3FF;
-  --primary-lightest: #D4E5FF;
-  --primary-bg: #F0F6FF;
+  --primary-lightest: #E8F0FE;
+  --primary-bg: #F6F8FA;
 
   /* Accent (Amarelo Gov.br / Verde SUS) */
   --accent: #FFCD00;
   --accent-sus: #00884A;
 
   /* Gradient */
-  --gradient-primary: linear-gradient(135deg, #0C326F 0%, #1351B4 100%);
-  --gradient-header: linear-gradient(135deg, #0C326F 0%, #1351B4 100%);
+  --gradient-primary: linear-gradient(135deg, #002F6C 0%, #1351B4 100%);
+  --gradient-header: linear-gradient(135deg, #002F6C 0%, #1351B4 100%);
   --gradient-card: linear-gradient(145deg, #ffffff 0%, #F9FBFF 100%);
   --gradient-success: linear-gradient(135deg, #00884A 0%, #10B981 100%);
   --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #FFCD00 100%);
@@ -236,3 +236,17 @@ input, select, textarea {
 .toast-exit {
   animation: slideDown var(--transition-base) ease-in reverse;
 }
+
+/* ============================================================
+   Modal & Utilities
+   ============================================================ */
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(100px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; backdrop-filter: blur(0); }
+  to { opacity: 1; backdrop-filter: blur(8px); }
+}
+

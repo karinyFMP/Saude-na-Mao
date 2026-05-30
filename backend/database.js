@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const DB_PATH = path.join(__dirname, 'saude_na_mao.db');
+const DB_PATH = path.join(__dirname, 'saude_na_mao_v2.db');
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
@@ -144,18 +144,45 @@ async function seedDatabase() {
     ['UBS Vila Esperança', 'Rua da Esperança, 321 - Vila Esperança', '(11) 3456-7894', '07:00 - 17:00', 'UBS']);
 
   // 3. Médicos (referenciam unidades)
+  // Unidade 1: UBS Central
   await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
     ['Dr. Carlos Mendes', 'Clínico Geral', 1, 'CRM/SP 123456']);
   await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dra. Mariana Rocha', 'Clínico Geral', 1, 'CRM/SP 111111']);
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
     ['Dra. Ana Oliveira', 'Cardiologia', 1, 'CRM/SP 234567']);
+
+  // Unidade 2: UBS Jardim América
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dr. Paulo Ribeiro', 'Clínico Geral', 2, 'CRM/SP 222222']);
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dra. Beatriz Santos', 'Clínico Geral', 2, 'CRM/SP 333333']);
   await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
     ['Dr. Pedro Lima', 'Ortopedia', 2, 'CRM/SP 345678']);
   await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
     ['Dra. Fernanda Costa', 'Dermatologia', 2, 'CRM/SP 456789']);
+
+  // Unidade 3: UPA 24h São Lucas
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dr. Roberto Silva', 'Clínico Geral', 3, 'CRM/SP 444444']);
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dra. Amanda Souza', 'Clínico Geral', 3, 'CRM/SP 555555']);
   await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
     ['Dr. Ricardo Souza', 'Pediatria', 3, 'CRM/SP 567890']);
+
+  // Unidade 4: Hospital Municipal
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dr. Eduardo Lima', 'Clínico Geral', 4, 'CRM/SP 666666']);
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dra. Sofia Martins', 'Clínico Geral', 4, 'CRM/SP 777777']);
   await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
     ['Dra. Juliana Alves', 'Ginecologia', 4, 'CRM/SP 678901']);
+
+  // Unidade 5: UBS Vila Esperança
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dr. Gabriel Santos', 'Clínico Geral', 5, 'CRM/SP 888888']);
+  await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
+    ['Dra. Camila Oliveira', 'Clínico Geral', 5, 'CRM/SP 999999']);
   await runAsync(`INSERT INTO medicos (nome, especialidade, unidade_id, crm) VALUES (?, ?, ?, ?)`,
     ['Dr. Marcos Pereira', 'Neurologia', 5, 'CRM/SP 789012']);
 

@@ -271,20 +271,31 @@ app.get('/api/ubs', (req, res) => {
 // ROTAS DE MÉDICOS
 // ============================================================
 
-// GET /api/medicos — Lista médicos, opcionalmente filtrados por especialidade
+// GET /api/medicos — Lista médicos, opcionalmente filtrados por especialidade e/ou unidade
 app.get('/api/medicos', (req, res) => {
-  const { especialidade } = req.query;
+  const { especialidade, unidade } = req.query;
 
   let query = `
     SELECT m.id, m.nome, m.especialidade, m.crm, u.nome as unidade_nome
     FROM medicos m
     LEFT JOIN unidades u ON m.unidade_id = u.id
   `;
+  
+  const conditions = [];
   const params = [];
 
   if (especialidade) {
-    query += ' WHERE m.especialidade = ?';
+    conditions.push('m.especialidade = ?');
     params.push(especialidade);
+  }
+
+  if (unidade) {
+    conditions.push('u.nome = ?');
+    params.push(unidade);
+  }
+
+  if (conditions.length > 0) {
+    query += ' WHERE ' + conditions.join(' AND ');
   }
 
   query += ' ORDER BY m.nome';
