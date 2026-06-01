@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from './contexts/AuthContext';
+
 import './App.css';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -7,71 +10,86 @@ import Protocolos from './components/Protocolos';
 import UnidadesSaude from './components/UnidadesSaude';
 import Perfil from './components/Perfil';
 
-function App() {
-  const [page, setPage] = useState('login');
-  const [paciente, setPaciente] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+// Componente para proteger rotas privadas
+const PrivateRoute = ({ children }) => {
+  const { signed, loading } = useContext(AuthContext);
 
-  const handleLogin = (dadosPaciente) => {
-    setPaciente(dadosPaciente);
-    setPage('dashboard');
+  if (loading) {
+    return <div className="loading-spinner">Carregando...</div>;
+  }
+
+  return signed ? children : <Navigate to="/login" replace />;
+};
+
+function App() {
+  const { signed, user, logout, updateUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleNavigate = (path) => {
+    navigate(`/${path}`);
   };
 
   const handleLogout = () => {
-    setPaciente(null);
-    setPage('login');
-  };
-
-  const handleNavigate = (pageName) => {
-    setPage(pageName);
-  };
-
-  const handleRefreshDashboard = () => {
-    setRefreshKey((prev) => prev + 1);
-    setPage('dashboard');
+    logout();
+    navigate('/login');
   };
 
   return (
     <div className="app-wrapper">
-      {page === 'login' && <Login onLogin={handleLogin} />}
-
-      {page === 'dashboard' && paciente && (
-        <Dashboard
-          paciente={paciente}
-          refreshKey={refreshKey}
-          onNavigate={handleNavigate}
-          onLogout={handleLogout}
+      <Routes>
+        <Route 
+          path="/login" 
+          element={signed ? <Navigate to="/dashboard" replace /> : <Login />} 
         />
-      )}
-
-      {page === 'agendamento' && paciente && (
-        <Agendamento
-          paciente={paciente}
-          onBack={() => handleNavigate('dashboard')}
-          onSuccess={handleRefreshDashboard}
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <Dashboard 
+                paciente={user} 
+                onNavigate={handleNavigate} 
+                onLogout={handleLogout} 
+              />
+            </PrivateRoute>
+          } 
         />
-      )}
-
-      {page === 'protocolos' && paciente && (
-        <Protocolos
-          paciente={paciente}
-          onBack={() => handleNavigate('dashboard')}
+        <Route 
+          path="/agendamento" 
+          element={
+            <PrivateRoute>
+              <Agendamento />
+            </PrivateRoute>
+          } 
         />
-      )}
-
-      {page === 'unidades' && (
-        <UnidadesSaude
-          onBack={() => handleNavigate(paciente ? 'dashboard' : 'login')}
+        <Route 
+          path="/protocolos" 
+          element={
+            <PrivateRoute>
+              <Protocolos 
+                paciente={user} 
+                onBack={() => handleNavigate('dashboard')} 
+              />
+            </PrivateRoute>
+          } 
         />
-      )}
-
-      {page === 'perfil' && paciente && (
-        <Perfil 
-          paciente={paciente} 
-          onBack={() => handleNavigate('dashboard')} 
-          onUpdatePaciente={(dadosAtualizados) => setPaciente(dadosAtualizados)}
+        <Route 
+          path="/perfil" 
+          element={
+            <PrivateRoute>
+              <Perfil 
+                paciente={user} 
+                onBack={() => handleNavigate('dashboard')} 
+                onUpdatePaciente={updateUser} 
+              />
+            </PrivateRoute>
+          } 
         />
-      )}
+        {/* Unidades de saúde pode ser acessada publicamente ou privadamente */}
+        <Route path="/unidades" element={<UnidadesSaude onBack={() => navigate(-1)} />} />
+
+        {/* Redirecionamento default */}
+        <Route path="*" element={<Navigate to={signed ? "/dashboard" : "/login"} replace />} />
+      </Routes>
     </div>
   );
 }

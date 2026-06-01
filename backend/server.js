@@ -1,7 +1,10 @@
+require('express-async-errors'); // Trata automaticamente exceções em rotas async
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
-const { db, initializeDatabase } = require('./database');
+const { initializeDatabase, runAsync, getAsync, allAsync } = require('./database');
+const { validateSchema } = require('./middlewares/validate');
+const { registerSchema, loginSchema, updatePacienteSchema, agendamentoSchema } = require('./schemas/apiSchemas');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,113 +18,78 @@ app.use(express.json());
 // ============================================================
 
 // POST /api/login — Validação de credenciais
-app.post('/api/login', (req, res) => {
+app.post('/api/login', validateSchema(loginSchema), async (req, res) => {
   const { cpf, senha } = req.body;
 
-  if (!cpf || !senha) {
-    return res.status(400).json({ error: 'CPF e senha são obrigatórios.' });
+  const paciente = await getAsync('SELECT * FROM pacientes WHERE cpf = ?', [cpf]);
+  
+  if (!paciente) {
+    return res.status(401).json({ error: 'CPF ou senha inválidos.' });
   }
 
-  db.get('SELECT * FROM pacientes WHERE cpf = ?', [cpf], async (err, paciente) => {
-    if (err) {
-      return res.status(500).json({ error: 'Erro interno do servidor.' });
-    }
+  const senhaValida = await bcrypt.compare(senha, paciente.senha);
+  if (!senhaValida) {
+    return res.status(401).json({ error: 'CPF ou senha inválidos.' });
+  }
 
-    if (!paciente) {
-      return res.status(401).json({ error: 'CPF ou senha inválidos.' });
-    }
-
-    const senhaValida = await bcrypt.compare(senha, paciente.senha);
-    if (!senhaValida) {
-      return res.status(401).json({ error: 'CPF ou senha inválidos.' });
-    }
-
-    // Retorna dados do paciente sem a senha
-    const { senha: _, ...dadosPaciente } = paciente;
-    res.json({
-      message: 'Login realizado com sucesso!',
-      paciente: dadosPaciente
-    });
+  // Retorna dados do paciente sem a senha
+  const { senha: _, ...dadosPaciente } = paciente;
+  res.json({
+    message: 'Login realizado com sucesso!',
+    paciente: dadosPaciente
   });
 });
 
 // POST /api/register — Cadastro de novo paciente
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', validateSchema(registerSchema), async (req, res) => {
   const { nome, cpf, senha, cartao_sus } = req.body;
 
-  if (!nome || !cpf || !senha) {
-    return res.status(400).json({ error: 'Nome, CPF e senha são obrigatórios.' });
+  const pacienteExistente = await getAsync('SELECT id FROM pacientes WHERE cpf = ?', [cpf]);
+  if (pacienteExistente) {
+    return res.status(409).json({ error: 'CPF já cadastrado.' });
   }
 
-  db.get('SELECT id FROM pacientes WHERE cpf = ?', [cpf], async (err, pacienteExistente) => {
-    if (err) {
-      return res.status(500).json({ error: 'Erro interno do servidor.' });
-    }
+  const senhaHash = await bcrypt.hash(senha, 10);
+  
+  const result = await runAsync(
+    'INSERT INTO pacientes (nome, cpf, senha, cartao_sus, unidade) VALUES (?, ?, ?, ?, ?)',
+    [nome, cpf, senhaHash, cartao_sus || null, 'UBS Central']
+  );
 
-    if (pacienteExistente) {
-      return res.status(409).json({ error: 'CPF já cadastrado.' });
-    }
+  const paciente = await getAsync(
+    'SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?',
+    [result.lastID]
+  );
 
-    try {
-      const senhaHash = await bcrypt.hash(senha, 10);
-      
-      db.run(
-        'INSERT INTO pacientes (nome, cpf, senha, cartao_sus, unidade) VALUES (?, ?, ?, ?, ?)',
-        [nome, cpf, senhaHash, cartao_sus || null, 'UBS Central'],
-        function (err) {
-          if (err) {
-            return res.status(500).json({ error: 'Erro ao cadastrar paciente.' });
-          }
-
-          db.get('SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?', [this.lastID], (err, paciente) => {
-            if (err) {
-              return res.status(500).json({ error: 'Erro ao buscar dados do paciente recém-cadastrado.' });
-            }
-            res.status(201).json({
-              message: 'Cadastro realizado com sucesso!',
-              paciente: paciente
-            });
-          });
-        }
-      );
-    } catch (hashError) {
-      return res.status(500).json({ error: 'Erro ao processar a senha.' });
-    }
+  res.status(201).json({
+    message: 'Cadastro realizado com sucesso!',
+    paciente
   });
 });
 
 // PUT /api/pacientes/:id — Atualizar dados do paciente
-app.put('/api/pacientes/:id', (req, res) => {
+app.put('/api/pacientes/:id', validateSchema(updatePacienteSchema), async (req, res) => {
   const { id } = req.params;
   const { nome, telefone, endereco, cpf, cartao_sus, unidade, data_nascimento } = req.body;
 
-  db.run(
+  const result = await runAsync(
     'UPDATE pacientes SET nome = ?, telefone = ?, endereco = ?, cpf = ?, cartao_sus = ?, unidade = ?, data_nascimento = ? WHERE id = ?',
-    [nome, telefone, endereco, cpf, cartao_sus, unidade, data_nascimento, id],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: 'Erro ao atualizar dados do paciente.' });
-      }
-
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Paciente não encontrado.' });
-      }
-
-      db.get(
-        'SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?',
-        [id],
-        (err, paciente) => {
-          if (err) {
-            return res.status(500).json({ error: 'Erro ao buscar dados atualizados.' });
-          }
-          res.json({
-            message: 'Perfil atualizado com sucesso!',
-            paciente
-          });
-        }
-      );
-    }
+    [nome, telefone, endereco, cpf, cartao_sus, unidade, data_nascimento, id]
   );
+
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Paciente não encontrado.' });
+  }
+
+  const paciente = await getAsync(
+    'SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?',
+    [id]
+  );
+
+  res.json({
+    message: 'Perfil atualizado com sucesso!',
+    paciente
+  });
 });
 
 // ============================================================
@@ -129,57 +97,39 @@ app.put('/api/pacientes/:id', (req, res) => {
 // ============================================================
 
 // GET /api/dashboard/:pacienteId — Retorna dados do paciente, consultas e protocolos
-app.get('/api/dashboard/:pacienteId', (req, res) => {
+app.get('/api/dashboard/:pacienteId', async (req, res) => {
   const { pacienteId } = req.params;
 
-  // Buscar dados do paciente
-  db.get(
+  const paciente = await getAsync(
     'SELECT id, nome, cpf, unidade, data_nascimento, cartao_sus, telefone, endereco FROM pacientes WHERE id = ?',
-    [pacienteId],
-    (err, paciente) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erro ao buscar dados do paciente.' });
-      }
-
-      if (!paciente) {
-        return res.status(404).json({ error: 'Paciente não encontrado.' });
-      }
-
-      // Buscar consultas do paciente com JOINs
-      db.all(
-        `SELECT c.id, c.medico, c.especialidade, c.data, c.horario, c.unidade, c.status, c.created_at
-         FROM consultas c
-         WHERE c.paciente_id = ?
-         ORDER BY c.data DESC, c.horario ASC`,
-        [pacienteId],
-        (err, consultas) => {
-          if (err) {
-            return res.status(500).json({ error: 'Erro ao buscar consultas.' });
-          }
-
-          // Buscar protocolos do paciente
-          db.all(
-            `SELECT p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at
-             FROM protocolos p
-             WHERE p.paciente_id = ?
-             ORDER BY p.data_pedido DESC`,
-            [pacienteId],
-            (err, protocolos) => {
-              if (err) {
-                return res.status(500).json({ error: 'Erro ao buscar protocolos.' });
-              }
-
-              res.json({
-                paciente,
-                consultas: consultas || [],
-                protocolos: protocolos || []
-              });
-            }
-          );
-        }
-      );
-    }
+    [pacienteId]
   );
+
+  if (!paciente) {
+    return res.status(404).json({ error: 'Paciente não encontrado.' });
+  }
+
+  const consultas = await allAsync(
+    `SELECT c.id, c.medico, c.especialidade, c.data, c.horario, c.unidade, c.status, c.created_at
+     FROM consultas c
+     WHERE c.paciente_id = ?
+     ORDER BY c.data DESC, c.horario ASC`,
+    [pacienteId]
+  );
+
+  const protocolos = await allAsync(
+    `SELECT p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at
+     FROM protocolos p
+     WHERE p.paciente_id = ?
+     ORDER BY p.data_pedido DESC`,
+    [pacienteId]
+  );
+
+  res.json({
+    paciente,
+    consultas: consultas || [],
+    protocolos: protocolos || []
+  });
 });
 
 // ============================================================
@@ -187,92 +137,58 @@ app.get('/api/dashboard/:pacienteId', (req, res) => {
 // ============================================================
 
 // POST /api/agendar — Insere nova consulta no banco
-app.post('/api/agendar', (req, res) => {
+app.post('/api/agendar', validateSchema(agendamentoSchema), async (req, res) => {
   const { paciente_id, medico, especialidade, data, horario, unidade } = req.body;
 
-  if (!paciente_id || !medico || !especialidade || !data || !horario) {
-    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+  const existing = await getAsync(
+    `SELECT id FROM consultas WHERE paciente_id = ? AND data = ? AND horario = ? AND status != 'Cancelada'`,
+    [paciente_id, data, horario]
+  );
+
+  if (existing) {
+    return res.status(409).json({ error: 'Já existe uma consulta agendada para este horário.' });
   }
 
-  // Verificar conflito de horário
-  db.get(
-    `SELECT id FROM consultas WHERE paciente_id = ? AND data = ? AND horario = ? AND status != 'Cancelada'`,
-    [paciente_id, data, horario],
-    (err, existing) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erro ao verificar disponibilidade.' });
-      }
-
-      if (existing) {
-        return res.status(409).json({ error: 'Já existe uma consulta agendada para este horário.' });
-      }
-
-      db.run(
-        `INSERT INTO consultas (paciente_id, medico, especialidade, data, horario, unidade, status)
-         VALUES (?, ?, ?, ?, ?, ?, 'Pendente')`,
-        [paciente_id, medico, especialidade, data, horario, unidade || 'UBS Central'],
-        function (err) {
-          if (err) {
-            return res.status(500).json({ error: 'Erro ao agendar consulta.' });
-          }
-
-          // Retorna a consulta recém-criada
-          db.get('SELECT * FROM consultas WHERE id = ?', [this.lastID], (err, consulta) => {
-            if (err) {
-              return res.status(500).json({ error: 'Erro ao buscar consulta criada.' });
-            }
-            res.status(201).json({
-              message: 'Consulta agendada com sucesso!',
-              consulta
-            });
-          });
-        }
-      );
-    }
+  const result = await runAsync(
+    `INSERT INTO consultas (paciente_id, medico, especialidade, data, horario, unidade, status)
+     VALUES (?, ?, ?, ?, ?, ?, 'Pendente')`,
+    [paciente_id, medico, especialidade, data, horario, unidade || 'UBS Central']
   );
-});
 
-// DELETE /api/consultas/:id — Cancelar consulta
-app.delete('/api/consultas/:id', (req, res) => {
-  const { id } = req.params;
+  const consulta = await getAsync('SELECT * FROM consultas WHERE id = ?', [result.lastID]);
 
-  db.run(
-    `UPDATE consultas SET status = 'Cancelada' WHERE id = ? AND status IN ('Pendente', 'Confirmada')`,
-    [id],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: 'Erro ao cancelar consulta.' });
-      }
-
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Consulta não encontrada ou não pode ser cancelada.' });
-      }
-
-      res.json({ message: 'Consulta cancelada com sucesso.' });
-    }
-  );
-});
-
-// ============================================================
-// ROTAS DE UNIDADES DE SAÚDE
-// ============================================================
-
-// GET /api/ubs — Lista unidades de saúde disponíveis
-app.get('/api/ubs', (req, res) => {
-  db.all('SELECT * FROM unidades ORDER BY nome', (err, unidades) => {
-    if (err) {
-      return res.status(500).json({ error: 'Erro ao buscar unidades de saúde.' });
-    }
-    res.json(unidades || []);
+  res.status(201).json({
+    message: 'Consulta agendada com sucesso!',
+    consulta
   });
 });
 
+// DELETE /api/consultas/:id — Cancelar consulta
+app.delete('/api/consultas/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const result = await runAsync(
+    `UPDATE consultas SET status = 'Cancelada' WHERE id = ? AND status IN ('Pendente', 'Confirmada')`,
+    [id]
+  );
+
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Consulta não encontrada ou não pode ser cancelada.' });
+  }
+
+  res.json({ message: 'Consulta cancelada com sucesso.' });
+});
+
 // ============================================================
-// ROTAS DE MÉDICOS
+// ROTAS DE UNIDADES DE SAÚDE E MÉDICOS
 // ============================================================
 
-// GET /api/medicos — Lista médicos, opcionalmente filtrados por especialidade e/ou unidade
-app.get('/api/medicos', (req, res) => {
+app.get('/api/ubs', async (req, res) => {
+  const unidades = await allAsync('SELECT * FROM unidades ORDER BY nome');
+  res.json(unidades || []);
+});
+
+app.get('/api/medicos', async (req, res) => {
   const { especialidade, unidade } = req.query;
 
   let query = `
@@ -300,45 +216,35 @@ app.get('/api/medicos', (req, res) => {
 
   query += ' ORDER BY m.nome';
 
-  db.all(query, params, (err, medicos) => {
-    if (err) {
-      return res.status(500).json({ error: 'Erro ao buscar médicos.' });
-    }
-    res.json(medicos || []);
-  });
+  const medicos = await allAsync(query, params);
+  res.json(medicos || []);
 });
 
-// GET /api/especialidades — Lista especialidades disponíveis
-app.get('/api/especialidades', (req, res) => {
-  db.all(
-    'SELECT DISTINCT especialidade FROM medicos ORDER BY especialidade',
-    (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erro ao buscar especialidades.' });
-      }
-      res.json(rows.map(r => r.especialidade));
-    }
-  );
+app.get('/api/especialidades', async (req, res) => {
+  const rows = await allAsync('SELECT DISTINCT especialidade FROM medicos ORDER BY especialidade');
+  res.json(rows.map(r => r.especialidade));
 });
 
 // ============================================================
 // ROTAS DE PROTOCOLOS
 // ============================================================
 
-// GET /api/protocolos/:pacienteId — Lista protocolos do paciente
-app.get('/api/protocolos/:pacienteId', (req, res) => {
+app.get('/api/protocolos/:pacienteId', async (req, res) => {
   const { pacienteId } = req.params;
-
-  db.all(
+  const protocolos = await allAsync(
     `SELECT * FROM protocolos WHERE paciente_id = ? ORDER BY data_pedido DESC`,
-    [pacienteId],
-    (err, protocolos) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erro ao buscar protocolos.' });
-      }
-      res.json(protocolos || []);
-    }
+    [pacienteId]
   );
+  res.json(protocolos || []);
+});
+
+// ============================================================
+// GLOBAL ERROR HANDLER
+// ============================================================
+
+app.use((err, req, res, next) => {
+  console.error('Erro na API:', err);
+  res.status(500).json({ error: 'Erro interno do servidor.' });
 });
 
 // ============================================================
@@ -350,9 +256,6 @@ initializeDatabase()
     app.listen(PORT, () => {
       console.log(`\n🏥 Saúde na Mão - Backend rodando na porta ${PORT}`);
       console.log(`   API: http://localhost:${PORT}/api`);
-      console.log(`\n📋 Credenciais de teste:`);
-      console.log(`   CPF: 123.456.789-00 | Senha: 123456`);
-      console.log(`   CPF: 987.654.321-00 | Senha: 654321\n`);
     });
   })
   .catch((err) => {

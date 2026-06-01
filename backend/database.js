@@ -30,6 +30,15 @@ function getAsync(sql, params = []) {
   });
 }
 
+function allAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
 async function initializeDatabase() {
   // Habilitar WAL mode e foreign keys
   await runAsync('PRAGMA journal_mode=WAL');
@@ -209,4 +218,4 @@ async function seedDatabase() {
   console.log('Dados iniciais inseridos com sucesso!');
 }
 
-module.exports = { db, initializeDatabase };
+module.exports = { db, initializeDatabase, runAsync, getAsync, allAsync };

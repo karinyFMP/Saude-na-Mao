@@ -1,83 +1,88 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'react-toastify';
+import { Loader2, Calendar, Clock, MapPin, Stethoscope, ChevronLeft, CheckCircle2 } from 'lucide-react';
+
 import { getMedicos, getUBS, agendarConsulta } from '../services/api';
+import { AuthContext } from '../contexts/AuthContext';
+import { agendamentoSchema } from '../schemas/agendamentoSchema';
 import './Agendamento.css';
 
-export default function Agendamento({ paciente, onBack, onSuccess }) {
+export default function Agendamento() {
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
   const [medicos, setMedicos] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [erro, setErro] = useState('');
 
-  const [form, setForm] = useState({
-    especialidade: 'Clínico Geral',
-    medico: '',
-    unidade: '',
-    data: '',
-    horario: '',
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(agendamentoSchema),
+    defaultValues: {
+      especialidade: 'Clínico Geral',
+      medico: '',
+      unidade: '',
+      data: '',
+      horario: '',
+    },
   });
 
+  const selectedUnidade = watch('unidade');
+  const selectedEspecialidade = watch('especialidade');
+
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const ubs = await getUBS();
+        setUnidades(ubs);
+      } catch (err) {
+        toast.error('Erro ao carregar unidades de saúde.');
+      } finally {
+        setLoading(false);
+      }
+    };
     loadData();
   }, []);
 
   useEffect(() => {
-    if (form.especialidade && form.unidade) {
-      getMedicos(form.especialidade, form.unidade).then(setMedicos).catch(() => {});
-      setForm((prev) => ({ ...prev, medico: '' }));
+    if (selectedEspecialidade && selectedUnidade) {
+      getMedicos(selectedEspecialidade, selectedUnidade)
+        .then(setMedicos)
+        .catch(() => setMedicos([]));
+      setValue('medico', ''); // Resetar médico ao mudar unidade
     } else {
       setMedicos([]);
-      setForm((prev) => ({ ...prev, medico: '' }));
+      setValue('medico', '');
     }
-  }, [form.especialidade, form.unidade]);
+  }, [selectedEspecialidade, selectedUnidade, setValue]);
 
-  const loadData = async () => {
-    try {
-      const ubs = await getUBS();
-      setUnidades(ubs);
-    } catch (err) {
-      setErro('Erro ao carregar dados.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErro('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { especialidade, medico, data, horario, unidade } = form;
-
-    if (!especialidade || !unidade || !medico || !data || !horario) {
-      setErro('Preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    setSubmitting(true);
-    setErro('');
+  const onSubmit = async (data) => {
+    if (!user) return;
 
     try {
       await agendarConsulta({
-        paciente_id: paciente.id,
-        medico,
-        especialidade,
-        data,
-        horario,
-        unidade: unidade || 'UBS Central',
+        paciente_id: user.id,
+        medico: data.medico,
+        especialidade: data.especialidade,
+        data: data.data,
+        horario: data.horario,
+        unidade: data.unidade || 'UBS Central',
       });
       setSuccess(true);
       setTimeout(() => {
-        onSuccess();
+        navigate('/dashboard');
       }, 2000);
     } catch (err) {
-      setErro(err.message);
-    } finally {
-      setSubmitting(false);
+      // O interceptor do axios exibe o erro
     }
   };
 
@@ -96,7 +101,7 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
   if (loading) {
     return (
       <div className="agend-loading">
-        <div className="agend-loading-spinner" />
+        <Loader2 className="agend-loading-spinner" size={32} />
         <p>Carregando formulário...</p>
       </div>
     );
@@ -106,9 +111,7 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
     return (
       <div className="agend-success">
         <div className="agend-success-icon">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
+          <CheckCircle2 size={64} color="white" />
         </div>
         <h2>Consulta Agendada!</h2>
         <p>Sua consulta foi registrada com sucesso. Você será redirecionado ao início.</p>
@@ -120,10 +123,8 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
     <div className="agendamento">
       {/* Header */}
       <header className="agend-header">
-        <button className="agend-back" onClick={onBack} aria-label="Voltar">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
+        <button className="agend-back" onClick={() => navigate('/dashboard')} aria-label="Voltar">
+          <ChevronLeft size={24} />
         </button>
         <h1 className="agend-title">Agendar Consulta</h1>
         <div style={{ width: 44 }} />
@@ -131,44 +132,27 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
 
       {/* Form */}
       <main className="agend-main">
-        <form className="agend-form" onSubmit={handleSubmit}>
+        <form className="agend-form" onSubmit={handleSubmit(onSubmit)}>
           {/* Info card */}
           <div className="agend-info-card">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
-            <p>Selecione a Unidade de Saúde, médico, data e horário para sua consulta.</p>
+            <p>Selecione a Unidade de Saúde, médico, data e horário para sua consulta de Clínico Geral.</p>
           </div>
-
-          {erro && (
-            <div className="agend-error" role="alert">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
-              </svg>
-              <span>{erro}</span>
-            </div>
-          )}
 
           {/* Unidade */}
           <div className="agend-field">
             <label htmlFor="unidade">
               Unidade de Saúde <span className="agend-required">*</span>
             </label>
-            <select
-              id="unidade"
-              name="unidade"
-              value={form.unidade}
-              onChange={handleChange}
-            >
-              <option value="">Selecione a Unidade de Saúde</option>
-              {unidades.map((u) => (
-                <option key={u.id} value={u.nome}>{u.nome}</option>
-              ))}
-            </select>
+            <div className={`agend-input-wrapper ${errors.unidade ? 'error' : ''}`}>
+              <MapPin size={18} className="agend-input-icon" />
+              <select id="unidade" {...register('unidade')}>
+                <option value="">Selecione a Unidade de Saúde</option>
+                {unidades.map((u) => (
+                  <option key={u.id} value={u.nome}>{u.nome}</option>
+                ))}
+              </select>
+            </div>
+            {errors.unidade && <span className="field-error">{errors.unidade.message}</span>}
           </div>
 
           {/* Médico */}
@@ -176,22 +160,20 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
             <label htmlFor="medico">
               Médico(a) <span className="agend-required">*</span>
             </label>
-            <select
-              id="medico"
-              name="medico"
-              value={form.medico}
-              onChange={handleChange}
-              disabled={!form.unidade}
-            >
-              <option value="">
-                {form.unidade ? 'Selecione o médico Clínico Geral' : 'Selecione uma Unidade de Saúde primeiro'}
-              </option>
-              {medicos.map((med) => (
-                <option key={med.id} value={med.nome}>
-                  {med.nome} — {med.unidade_nome}
+            <div className={`agend-input-wrapper ${errors.medico ? 'error' : ''}`}>
+              <Stethoscope size={18} className="agend-input-icon" />
+              <select id="medico" {...register('medico')} disabled={!selectedUnidade}>
+                <option value="">
+                  {selectedUnidade ? 'Selecione o médico Clínico Geral' : 'Selecione uma Unidade de Saúde primeiro'}
                 </option>
-              ))}
-            </select>
+                {medicos.map((med) => (
+                  <option key={med.id} value={med.nome}>
+                    {med.nome} — {med.unidade_nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.medico && <span className="field-error">{errors.medico.message}</span>}
           </div>
 
           {/* Data e Horário — lado a lado */}
@@ -200,31 +182,32 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
               <label htmlFor="data">
                 Data <span className="agend-required">*</span>
               </label>
-              <input
-                type="date"
-                id="data"
-                name="data"
-                value={form.data}
-                onChange={handleChange}
-                min={minDate}
-              />
+              <div className={`agend-input-wrapper ${errors.data ? 'error' : ''}`}>
+                <Calendar size={18} className="agend-input-icon" />
+                <input
+                  type="date"
+                  id="data"
+                  min={minDate}
+                  {...register('data')}
+                />
+              </div>
+              {errors.data && <span className="field-error">{errors.data.message}</span>}
             </div>
 
             <div className="agend-field">
               <label htmlFor="horario">
                 Horário <span className="agend-required">*</span>
               </label>
-              <select
-                id="horario"
-                name="horario"
-                value={form.horario}
-                onChange={handleChange}
-              >
-                <option value="">Selecione</option>
-                {timeSlots.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
+              <div className={`agend-input-wrapper ${errors.horario ? 'error' : ''}`}>
+                <Clock size={18} className="agend-input-icon" />
+                <select id="horario" {...register('horario')}>
+                  <option value="">Selecione</option>
+                  {timeSlots.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              {errors.horario && <span className="field-error">{errors.horario.message}</span>}
             </div>
           </div>
 
@@ -232,23 +215,13 @@ export default function Agendamento({ paciente, onBack, onSuccess }) {
           <button
             type="submit"
             className="agend-submit"
-            disabled={submitting}
+            disabled={isSubmitting}
             id="btn-agendar-submit"
           >
-            {submitting ? (
-              <div className="agend-spinner" />
+            {isSubmitting ? (
+              <Loader2 className="agend-spinner" size={20} />
             ) : (
-              <>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                  <line x1="12" y1="14" x2="12" y2="18"/>
-                  <line x1="10" y1="16" x2="14" y2="16"/>
-                </svg>
-                Confirmar Agendamento
-              </>
+              'Confirmar Agendamento'
             )}
           </button>
         </form>
