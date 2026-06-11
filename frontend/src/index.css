@@ -250,3 +250,29 @@ input, select, textarea {
   to { opacity: 1; backdrop-filter: blur(8px); }
 }
 
+/* ============================================================
+   Form Validation Errors
+   ============================================================ */
+.error-label {
+  color: #E53E3E !important;
+}
+
+.login-input-wrapper.error {
+  border-color: #E53E3E !important;
+}
+
+.agend-input-wrapper.error select,
+.agend-input-wrapper.error input {
+  border-color: #E53E3E !important;
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #E53E3E;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 4px;
+  animation: fadeIn 0.3s ease-out;
+}

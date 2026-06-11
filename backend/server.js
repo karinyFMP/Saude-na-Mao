@@ -2,8 +2,10 @@ require('express-async-errors'); // Trata automaticamente exceções em rotas as
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { initializeDatabase, runAsync, getAsync, allAsync } = require('./database');
 const { validateSchema } = require('./middlewares/validate');
+const { verificarAdmin, JWT_SECRET } = require('./middlewares/verificarAdmin');
 const { registerSchema, loginSchema, updatePacienteSchema, agendamentoSchema } = require('./schemas/apiSchemas');
 
 const app = express();
@@ -239,6 +241,141 @@ app.get('/api/protocolos/:pacienteId', async (req, res) => {
 });
 
 // ============================================================
+// ROTAS DO SERVIDOR (ADMINISTRAÇÃO) — Isoladas e protegidas
+// ============================================================
+
+// POST /api/servidor/login — Autentica um servidor/atendente
+app.post('/api/servidor/login', async (req, res) => {
+  const { cpf, senha } = req.body;
+
+  if (!cpf || !senha) {
+    return res.status(400).json({ error: 'CPF e senha são obrigatórios.' });
+  }
+
+  const servidor = await getAsync('SELECT * FROM servidores WHERE cpf = ?', [cpf]);
+
+  if (!servidor) {
+    return res.status(401).json({ error: 'CPF ou senha inválidos.' });
+  }
+
+  const senhaValida = await bcrypt.compare(senha, servidor.senha);
+  if (!senhaValida) {
+    return res.status(401).json({ error: 'CPF ou senha inválidos.' });
+  }
+
+  const token = jwt.sign(
+    { id: servidor.id, nome: servidor.nome, cargo: servidor.cargo, role: 'servidor' },
+    JWT_SECRET,
+    { expiresIn: '8h' }
+  );
+
+  res.json({
+    message: 'Login realizado com sucesso!',
+    token,
+    servidor: { id: servidor.id, nome: servidor.nome, cargo: servidor.cargo }
+  });
+});
+
+// GET /api/admin/protocolos — Lista todos os protocolos (requer token de servidor)
+app.get('/api/admin/protocolos', verificarAdmin, async (req, res) => {
+  const { status, paciente } = req.query;
+
+  let query = `
+    SELECT
+      p.id,
+      p.especialidade,
+      p.descricao,
+      p.status,
+      p.data_pedido,
+      p.data_resposta,
+      p.created_at,
+      pac.id as paciente_id,
+      pac.nome as paciente_nome,
+      pac.cpf as paciente_cpf,
+      pac.unidade as paciente_unidade
+    FROM protocolos p
+    INNER JOIN pacientes pac ON p.paciente_id = pac.id
+  `;
+
+  const conditions = [];
+  const params = [];
+
+  if (status && status !== 'Todos') {
+    conditions.push('p.status = ?');
+    params.push(status);
+  }
+
+  if (paciente) {
+    conditions.push('pac.nome LIKE ?');
+    params.push(`%${paciente}%`);
+  }
+
+  if (conditions.length > 0) {
+    query += ' WHERE ' + conditions.join(' AND ');
+  }
+
+  query += ' ORDER BY p.data_pedido DESC';
+
+  const protocolos = await allAsync(query, params);
+  res.json(protocolos || []);
+});
+
+// GET /api/admin/protocolos/:id — Obtém detalhes completos de um protocolo (requer token de servidor)
+app.get('/api/admin/protocolos/:id', verificarAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  const protocolo = await getAsync(
+    `SELECT
+      p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at,
+      pac.id as paciente_id, pac.nome as paciente_nome, pac.cpf as paciente_cpf, pac.unidade as paciente_unidade, pac.data_nascimento, pac.cartao_sus, pac.telefone
+     FROM protocolos p
+     INNER JOIN pacientes pac ON p.paciente_id = pac.id
+     WHERE p.id = ?`,
+    [id]
+  );
+
+  if (!protocolo) {
+    return res.status(404).json({ error: 'Protocolo não encontrado.' });
+  }
+
+  res.json(protocolo);
+});
+
+// PUT /api/admin/protocolos/:id — Atualiza status de um protocolo (requer token de servidor)
+app.put('/api/admin/protocolos/:id', verificarAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const statusPermitidos = ['Em análise', 'Aprovado', 'Negado', 'Concluído'];
+  if (!status || !statusPermitidos.includes(status)) {
+    return res.status(400).json({ error: `Status inválido. Use: ${statusPermitidos.join(', ')}` });
+  }
+
+  const dataResposta = (status === 'Aprovado' || status === 'Negado' || status === 'Concluído')
+    ? new Date().toISOString().split('T')[0]
+    : null;
+
+  const result = await runAsync(
+    `UPDATE protocolos SET status = ?, data_resposta = ? WHERE id = ?`,
+    [status, dataResposta, id]
+  );
+
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Protocolo não encontrado.' });
+  }
+
+  const protocolo = await getAsync(
+    `SELECT p.*, pac.nome as paciente_nome FROM protocolos p
+     INNER JOIN pacientes pac ON p.paciente_id = pac.id
+     WHERE p.id = ?`,
+    [id]
+  );
+
+  res.json({ message: 'Status atualizado com sucesso!', protocolo });
+});
+
+
+// ============================================================
 // GLOBAL ERROR HANDLER
 // ============================================================
 
@@ -248,17 +385,21 @@ app.use((err, req, res, next) => {
 });
 
 // ============================================================
-// INICIALIZAÇÃO DO SERVIDOR
+// INICIALIZAÇÃO DO SERVIDOR E EXPORT
 // ============================================================
 
-initializeDatabase()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`\n🏥 Saúde na Mão - Backend rodando na porta ${PORT}`);
-      console.log(`   API: http://localhost:${PORT}/api`);
+if (process.env.NODE_ENV !== 'test') {
+  initializeDatabase()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`\n🏥 Saúde na Mão - Backend rodando na porta ${PORT}`);
+        console.log(`   API: http://localhost:${PORT}/api`);
+      });
+    })
+    .catch((err) => {
+      console.error('Erro ao inicializar o banco de dados:', err);
+      process.exit(1);
     });
-  })
-  .catch((err) => {
-    console.error('Erro ao inicializar o banco de dados:', err);
-    process.exit(1);
-  });
+}
+
+module.exports = { app, initializeDatabase };

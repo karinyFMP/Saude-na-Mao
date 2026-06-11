@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema } from '../schemas/authSchemas';
-import { Eye, EyeOff, User, Lock, CreditCard, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, CreditCard, Loader2, AlertCircle } from 'lucide-react';
 
 export default function RegisterForm({ onSubmit, loading, onToggleMode }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -46,7 +46,7 @@ export default function RegisterForm({ onSubmit, loading, onToggleMode }) {
       <p className="login-card-desc">Preencha os dados abaixo para se cadastrar</p>
 
       <div className="login-field">
-        <label htmlFor="nome">Nome Completo</label>
+        <label htmlFor="nome" className={errors.nome ? 'error-label' : ''}>Nome Completo</label>
         <div className={`login-input-wrapper ${errors.nome ? 'error' : ''}`}>
           <User className="login-input-icon" size={20} />
           <input
@@ -57,11 +57,11 @@ export default function RegisterForm({ onSubmit, loading, onToggleMode }) {
             autoComplete="name"
           />
         </div>
-        {errors.nome && <span className="field-error">{errors.nome.message}</span>}
+        {errors.nome && <span className="field-error"><AlertCircle size={14} /> {errors.nome.message}</span>}
       </div>
 
       <div className="login-field">
-        <label htmlFor="cns">Cartão Nacional de Saúde (CNS)</label>
+        <label htmlFor="cns" className={errors.cartao_sus ? 'error-label' : ''}>Cartão Nacional de Saúde (CNS)</label>
         <div className={`login-input-wrapper ${errors.cartao_sus ? 'error' : ''}`}>
           <CreditCard className="login-input-icon" size={20} />
           <input
@@ -73,11 +73,11 @@ export default function RegisterForm({ onSubmit, loading, onToggleMode }) {
             maxLength={18}
           />
         </div>
-        {errors.cartao_sus && <span className="field-error">{errors.cartao_sus.message}</span>}
+        {errors.cartao_sus && <span className="field-error"><AlertCircle size={14} /> {errors.cartao_sus.message}</span>}
       </div>
 
       <div className="login-field">
-        <label htmlFor="cpf">CPF</label>
+        <label htmlFor="cpf" className={errors.cpf ? 'error-label' : ''}>CPF</label>
         <div className={`login-input-wrapper ${errors.cpf ? 'error' : ''}`}>
           <User className="login-input-icon" size={20} />
           <input
@@ -90,11 +90,11 @@ export default function RegisterForm({ onSubmit, loading, onToggleMode }) {
             maxLength={14}
           />
         </div>
-        {errors.cpf && <span className="field-error">{errors.cpf.message}</span>}
+        {errors.cpf && <span className="field-error"><AlertCircle size={14} /> {errors.cpf.message}</span>}
       </div>
 
       <div className="login-field">
-        <label htmlFor="senha">Senha</label>
+        <label htmlFor="senha" className={errors.senha ? 'error-label' : ''}>Senha</label>
         <div className={`login-input-wrapper ${errors.senha ? 'error' : ''}`}>
           <Lock className="login-input-icon" size={20} />
           <input
@@ -111,7 +111,7 @@ export default function RegisterForm({ onSubmit, loading, onToggleMode }) {
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
-        {errors.senha && <span className="field-error">{errors.senha.message}</span>}
+        {errors.senha && <span className="field-error"><AlertCircle size={14} /> {errors.senha.message}</span>}
       </div>
 
       <button

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '../schemas/authSchemas';
-import { Eye, EyeOff, User, Lock, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Loader2, AlertCircle } from 'lucide-react';
 
 export default function LoginForm({ onSubmit, loading, onToggleMode }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +34,7 @@ export default function LoginForm({ onSubmit, loading, onToggleMode }) {
       <p className="login-card-desc">Use seu CPF e senha para acessar</p>
 
       <div className="login-field">
-        <label htmlFor="cpf">CPF</label>
+        <label htmlFor="cpf" className={errors.cpf ? 'error-label' : ''}>CPF</label>
         <div className={`login-input-wrapper ${errors.cpf ? 'error' : ''}`}>
           <User className="login-input-icon" size={20} />
           <input
@@ -47,11 +47,11 @@ export default function LoginForm({ onSubmit, loading, onToggleMode }) {
             maxLength={14}
           />
         </div>
-        {errors.cpf && <span className="field-error">{errors.cpf.message}</span>}
+        {errors.cpf && <span className="field-error"><AlertCircle size={14} /> {errors.cpf.message}</span>}
       </div>
 
       <div className="login-field">
-        <label htmlFor="senha">Senha</label>
+        <label htmlFor="senha" className={errors.senha ? 'error-label' : ''}>Senha</label>
         <div className={`login-input-wrapper ${errors.senha ? 'error' : ''}`}>
           <Lock className="login-input-icon" size={20} />
           <input
@@ -68,7 +68,7 @@ export default function LoginForm({ onSubmit, loading, onToggleMode }) {
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
-        {errors.senha && <span className="field-error">{errors.senha.message}</span>}
+        {errors.senha && <span className="field-error"><AlertCircle size={14} /> {errors.senha.message}</span>}
       </div>
 
       <button

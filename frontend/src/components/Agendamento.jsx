@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
-import { Loader2, Calendar, Clock, MapPin, Stethoscope, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { Loader2, Calendar, Clock, MapPin, Stethoscope, ChevronLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 
 import { getMedicos, getUBS, agendarConsulta } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
@@ -140,7 +140,7 @@ export default function Agendamento() {
 
           {/* Unidade */}
           <div className="agend-field">
-            <label htmlFor="unidade">
+            <label htmlFor="unidade" className={errors.unidade ? 'error-label' : ''}>
               Unidade de Saúde <span className="agend-required">*</span>
             </label>
             <div className={`agend-input-wrapper ${errors.unidade ? 'error' : ''}`}>
@@ -152,12 +152,12 @@ export default function Agendamento() {
                 ))}
               </select>
             </div>
-            {errors.unidade && <span className="field-error">{errors.unidade.message}</span>}
+            {errors.unidade && <span className="field-error"><AlertCircle size={14} /> {errors.unidade.message}</span>}
           </div>
 
           {/* Médico */}
           <div className="agend-field">
-            <label htmlFor="medico">
+            <label htmlFor="medico" className={errors.medico ? 'error-label' : ''}>
               Médico(a) <span className="agend-required">*</span>
             </label>
             <div className={`agend-input-wrapper ${errors.medico ? 'error' : ''}`}>
@@ -173,13 +173,13 @@ export default function Agendamento() {
                 ))}
               </select>
             </div>
-            {errors.medico && <span className="field-error">{errors.medico.message}</span>}
+            {errors.medico && <span className="field-error"><AlertCircle size={14} /> {errors.medico.message}</span>}
           </div>
 
           {/* Data e Horário — lado a lado */}
           <div className="agend-row">
             <div className="agend-field">
-              <label htmlFor="data">
+              <label htmlFor="data" className={errors.data ? 'error-label' : ''}>
                 Data <span className="agend-required">*</span>
               </label>
               <div className={`agend-input-wrapper ${errors.data ? 'error' : ''}`}>
@@ -191,11 +191,11 @@ export default function Agendamento() {
                   {...register('data')}
                 />
               </div>
-              {errors.data && <span className="field-error">{errors.data.message}</span>}
+              {errors.data && <span className="field-error"><AlertCircle size={14} /> {errors.data.message}</span>}
             </div>
 
             <div className="agend-field">
-              <label htmlFor="horario">
+              <label htmlFor="horario" className={errors.horario ? 'error-label' : ''}>
                 Horário <span className="agend-required">*</span>
               </label>
               <div className={`agend-input-wrapper ${errors.horario ? 'error' : ''}`}>
@@ -207,7 +207,7 @@ export default function Agendamento() {
                   ))}
                 </select>
               </div>
-              {errors.horario && <span className="field-error">{errors.horario.message}</span>}
+              {errors.horario && <span className="field-error"><AlertCircle size={14} /> {errors.horario.message}</span>}
             </div>
           </div>
 

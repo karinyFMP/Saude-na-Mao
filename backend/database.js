@@ -2,13 +2,15 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const DB_PATH = path.join(__dirname, 'saude_na_mao_v2.db');
+const DB_PATH = process.env.NODE_ENV === 'test' 
+  ? ':memory:' 
+  : path.join(__dirname, 'saude_na_mao_v2.db');
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
     console.error('Erro ao conectar ao banco de dados:', err.message);
   } else {
-    console.log('Conectado ao banco de dados SQLite.');
+    console.log(`Conectado ao banco de dados SQLite (${DB_PATH}).`);
   }
 });
 
@@ -113,8 +115,36 @@ async function initializeDatabase() {
     )
   `);
 
+  await runAsync(`
+    CREATE TABLE IF NOT EXISTS servidores (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL,
+      cpf TEXT UNIQUE NOT NULL,
+      senha TEXT NOT NULL,
+      cargo TEXT DEFAULT 'Atendente',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Seed data
   await seedDatabase();
+  await seedServidores();
+}
+
+async function seedServidores() {
+  const row = await getAsync('SELECT COUNT(*) as count FROM servidores');
+  if (row && row.count > 0) {
+    console.log('Servidores já cadastrados. Seed de servidores ignorado.');
+    return;
+  }
+
+  console.log('Inserindo servidor padrão...');
+  const senhaAdmin = await bcrypt.hash('admin123', 10);
+  await runAsync(
+    `INSERT INTO servidores (nome, cpf, senha, cargo) VALUES (?, ?, ?, ?)`,
+    ['Admin Sistema', '000.000.000-00', senhaAdmin, 'Administrador']
+  );
+  console.log('Servidor padrão criado: CPF 000.000.000-00 / senha admin123');
 }
 
 async function seedDatabase() {
