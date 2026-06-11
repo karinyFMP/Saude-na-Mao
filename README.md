@@ -60,7 +60,7 @@ $ git clone [https://github.com/karinyFMP/Saude-na-Mao.git](https://github.com/k
 $ cd Saude-na-Mao
 
 # 3. Instale as dependências
-$ npm install # ou yarn install
+$ npm run install-all 
 
 # 4. Inicie a aplicação
-$ npm start # ou comando específico do seu framework (ex: expo start, flutter run)
+$ npm start 
