@@ -94,7 +94,7 @@ describe('🛡️ Autenticação Admin e JWT', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
     expect(typeof res.body.token).toBe('string');
-    expect(res.body.servidor).toHaveProperty('nome', 'Admin Sistema');
+    expect(res.body.servidor).toHaveProperty('nome', 'auditor');
   });
 });
 

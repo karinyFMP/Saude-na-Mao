@@ -83,7 +83,7 @@ export default function AdminProtocoloDetails() {
         <div className="dash-header-compact-inner" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 var(--space-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="dash-header-left">
             <h1 className="dash-brand-title" style={{ fontSize: '1.6rem', letterSpacing: '-0.5px', color: 'white', margin: 0 }}>Saúde na Mão</h1>
-            <span className="dash-brand-subtitle" style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: '2px', color: 'white' }}>Painel Administrativo Restrito</span>
+            <span className="dash-brand-subtitle" style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: '2px', color: 'white' }}>Painel de Auditoria Restrito</span>
           </div>
         </div>
       </header>
@@ -162,7 +162,7 @@ export default function AdminProtocoloDetails() {
             {protocolo.status === 'Em análise' && (
               <div className="admin-parecer-wrapper">
                 <label htmlFor="parecerText" className="admin-parecer-label">
-                  Parecer / Justificativa do Administrador
+                  Parecer / Justificativa do Auditor
                 </label>
                 <textarea 
                   id="parecerText"

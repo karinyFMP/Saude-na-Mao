@@ -115,7 +115,7 @@ export default function AdminDashboard() {
         <div className="dash-header-compact-inner">
           <div className="dash-header-left">
             <h1 className="dash-brand-title" style={{ fontSize: '1.6rem', letterSpacing: '-0.5px' }}>Saúde na Mão</h1>
-            <span className="dash-brand-subtitle" style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: '2px' }}>Painel Administrativo Restrito</span>
+            <span className="dash-brand-subtitle" style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: '2px' }}>Painel de Auditoria Restrito</span>
           </div>
           <div className="dash-header-right">
             {servidor && (
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
           <div className="dash-patient-bar-main">
             <p className="dash-patient-bar-greeting">Olá, <strong>{servidor?.nome?.split(' ')[0] || 'Servidor'}</strong></p>
             <div className="dash-patient-bar-details">
-              <span>Cargo: {servidor?.cargo || 'Administrador'}</span>
+              <span>Cargo: {servidor?.cargo || 'Auditor'}</span>
               <span className="dot-separator">•</span>
               <span>Acesso Restrito</span>
             </div>

@@ -77,7 +77,7 @@ export default function AdminLogin() {
             <img src={logoImg} alt="Logotipo Saúde na Mão" width="64" height="64" style={{ borderRadius: '14px', objectFit: 'cover' }} />
           </div>
           <h1 className="admin-login-title">Painel do Servidor</h1>
-          <p className="admin-login-subtitle">Saúde na Mão — Área Administrativa</p>
+          <p className="admin-login-subtitle">Saúde na Mão — Área de Auditoria</p>
         </div>
 
         {/* Card */}

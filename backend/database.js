@@ -142,7 +142,7 @@ async function seedServidores() {
   const senhaAdmin = await bcrypt.hash('admin123', 10);
   await runAsync(
     `INSERT INTO servidores (nome, cpf, senha, cargo) VALUES (?, ?, ?, ?)`,
-    ['Admin Sistema', '000.000.000-00', senhaAdmin, 'Administrador']
+    ['auditor', '000.000.000-00', senhaAdmin, 'auditor']
   );
   console.log('Servidor padrão criado: CPF 000.000.000-00 / senha admin123');
 }
