@@ -54,7 +54,7 @@ Antes de começar, você vai precisar ter instalado em sua máquina as seguintes
 
 ```bash
 # 1. Clone este repositório
-$ git clone [https://github.com/karinyFMP/Saude-na-Mao.git](https://github.com/karinyFMP/Saude-na-Mao.git)
+$ git clone https://github.com/karinyFMP/Saude-na-Mao.git
 
 # 2. Acesse a pasta do projeto
 $ cd Saude-na-Mao
