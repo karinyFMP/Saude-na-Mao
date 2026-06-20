@@ -276,6 +276,126 @@ app.post('/api/servidor/login', async (req, res) => {
   });
 });
 
+// ============================================================
+// ROTAS DO MÉDICO
+// ============================================================
+
+// POST /api/medico/login — Autentica um médico
+app.post('/api/medico/login', async (req, res) => {
+  const { crm, senha } = req.body;
+
+  if (!crm || !senha) {
+    return res.status(400).json({ error: 'CRM e senha são obrigatórios.' });
+  }
+
+  const medico = await getAsync('SELECT * FROM medicos WHERE crm = ?', [crm]);
+
+  if (!medico) {
+    return res.status(401).json({ error: 'CRM ou senha inválidos.' });
+  }
+
+  if (!medico.senha) {
+    return res.status(401).json({ error: 'Médico sem senha configurada. Contate o administrador.' });
+  }
+
+  const senhaValida = await bcrypt.compare(senha, medico.senha);
+  if (!senhaValida) {
+    return res.status(401).json({ error: 'CRM ou senha inválidos.' });
+  }
+
+  const token = jwt.sign(
+    { id: medico.id, nome: medico.nome, especialidade: medico.especialidade, crm: medico.crm, perfil: medico.perfil, role: 'medico' },
+    JWT_SECRET,
+    { expiresIn: '8h' }
+  );
+
+  // Retorna os dados do médico sem a senha
+  const { senha: _, ...dadosMedico } = medico;
+
+  res.json({
+    message: 'Login realizado com sucesso!',
+    token,
+    medico: dadosMedico
+  });
+});
+
+// GET /api/medico/protocolos — Lista protocolos
+app.get('/api/medico/protocolos', async (req, res) => {
+  let query = `
+    SELECT
+      p.id,
+      p.especialidade,
+      p.descricao,
+      p.status,
+      p.data_pedido,
+      p.data_resposta,
+      p.created_at,
+      p.tipo_protocolo,
+      p.prioridade,
+      pac.id as paciente_id,
+      pac.nome as paciente_nome,
+      pac.cpf as paciente_cpf
+    FROM protocolos p
+    INNER JOIN pacientes pac ON p.paciente_id = pac.id
+    ORDER BY p.data_pedido DESC
+  `;
+  const protocolos = await allAsync(query);
+  res.json(protocolos || []);
+});
+
+// GET /api/medico/protocolos/:id — Detalhes do protocolo
+app.get('/api/medico/protocolos/:id', async (req, res) => {
+  const { id } = req.params;
+  const protocolo = await getAsync(
+    `SELECT
+      p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at,
+      p.tipo_protocolo, p.prioridade, p.parecer_medico,
+      pac.id as paciente_id, pac.nome as paciente_nome, pac.cpf as paciente_cpf
+     FROM protocolos p
+     INNER JOIN pacientes pac ON p.paciente_id = pac.id
+     WHERE p.id = ?`,
+    [id]
+  );
+  if (!protocolo) {
+    return res.status(404).json({ error: 'Protocolo não encontrado.' });
+  }
+  res.json(protocolo);
+});
+
+// POST /api/medico/protocolos — Cria novo protocolo
+app.post('/api/medico/protocolos', async (req, res) => {
+  const {
+    pacienteCpf, tipoProtocolo, especialidade, prioridade, descricao, parecerMedico, medicoId
+  } = req.body;
+
+  const paciente = await getAsync('SELECT id FROM pacientes WHERE cpf = ?', [pacienteCpf]);
+  if (!paciente) {
+    return res.status(404).json({ error: 'Paciente não encontrado para o CPF informado.' });
+  }
+
+  const dataPedido = new Date().toISOString().split('T')[0];
+
+  const result = await runAsync(
+    `INSERT INTO protocolos (paciente_id, especialidade, descricao, status, data_pedido, tipo_protocolo, prioridade, parecer_medico, medico_id)
+     VALUES (?, ?, ?, 'Em análise', ?, ?, ?, ?, ?)`,
+    [paciente.id, especialidade || '', descricao, dataPedido, tipoProtocolo, prioridade, parecerMedico || null, medicoId]
+  );
+
+  res.status(201).json({ message: 'Protocolo criado com sucesso!', protocoloId: result.lastID });
+});
+
+// GET /api/medico/pacientes/:cpf — Busca paciente pelo CPF
+app.get('/api/medico/pacientes/:cpf', async (req, res) => {
+  const { cpf } = req.params;
+  const paciente = await getAsync('SELECT id, nome, cpf, data_nascimento FROM pacientes WHERE cpf = ?', [cpf]);
+  
+  if (!paciente) {
+    return res.status(404).json({ error: 'Paciente não encontrado.' });
+  }
+  res.json(paciente);
+});
+
+
 // GET /api/admin/protocolos — Lista todos os protocolos (requer token de servidor)
 app.get('/api/admin/protocolos', verificarAdmin, async (req, res) => {
   const { status, paciente } = req.query;

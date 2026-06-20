@@ -52,7 +52,7 @@ export default function AdminLogin() {
       const data = await adminLogin(cpf, senha);
       loginServidor(data.servidor, data.token);
       toast.success(`Bem-vindo, ${data.servidor.nome}!`);
-      navigate('/admin/dashboard', { replace: true });
+      navigate('/auditor/dashboard', { replace: true });
     } catch (err) {
       const msg = err?.response?.data?.error || 'Credenciais inválidas. Tente novamente.';
       toast.error(msg);

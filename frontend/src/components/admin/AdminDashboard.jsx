@@ -226,7 +226,6 @@ export default function AdminDashboard() {
                     <th>#</th>
                     <th>Paciente</th>
                     <th>Especialidade</th>
-                    <th>Descrição</th>
                     <th>Data Pedido</th>
                     <th>Data Resposta</th>
                     <th>Status Atual</th>
@@ -236,7 +235,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {loading ? (
                     <tr className="admin-state-row">
-                      <td colSpan={8}>
+                      <td colSpan={7}>
                         <div className="admin-loading-state">
                           <Loader2 size={36} />
                           <p>Carregando protocolos...</p>
@@ -245,7 +244,7 @@ export default function AdminDashboard() {
                     </tr>
                   ) : loadingError ? (
                     <tr className="admin-state-row">
-                      <td colSpan={8}>
+                      <td colSpan={7}>
                         <div className="admin-error-state">
                           <AlertTriangle size={36} />
                           <p>Erro ao carregar dados. Tente novamente.</p>
@@ -254,7 +253,7 @@ export default function AdminDashboard() {
                     </tr>
                   ) : protocolos.length === 0 ? (
                     <tr className="admin-state-row">
-                      <td colSpan={8}>
+                      <td colSpan={7}>
                         <div className="admin-empty-state">
                           <FileX size={36} />
                           <p>Nenhum protocolo encontrado para os filtros selecionados.</p>
@@ -276,9 +275,6 @@ export default function AdminDashboard() {
                           </td>
                           <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
                             {p.especialidade}
-                          </td>
-                          <td style={{ maxWidth: 200, color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            {p.descricao || '—'}
                           </td>
                           <td>{formatDate(p.data_pedido)}</td>
                           <td>{formatDate(p.data_resposta)}</td>

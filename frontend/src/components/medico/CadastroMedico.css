@@ -1,0 +1,438 @@
+/* ============================================================
+   CADASTRO MÉDICO — Tela de criação de conta
+   Herda tokens de index.css. Scroll INTENCIONAL (muitos campos).
+   ============================================================ */
+
+.cm-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;   /* flex-start: permite scroll natural */
+  justify-content: center;
+  background: var(--gradient-primary);
+  position: relative;
+  /* overflow-y: auto — scroll intencional para formulário extenso */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 40px 16px;        /* espaçamento respeitoso no topo e fundo */
+}
+
+/* Círculos decorativos — mesmo padrão das telas de login */
+.cm-bg {
+  position: fixed;           /* fixed para os círculos não scrollarem junto */
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.cm-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cm-bg-circle-1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  right: -100px;
+  animation: pulse 8s ease-in-out infinite;
+}
+
+.cm-bg-circle-2 {
+  width: 300px;
+  height: 300px;
+  bottom: -80px;
+  left: -80px;
+  animation: pulse 10s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.cm-bg-circle-3 {
+  width: 200px;
+  height: 200px;
+  top: 40%;
+  left: 60%;
+  animation: pulse 7s ease-in-out infinite;
+  animation-delay: 4s;
+}
+
+/* Container */
+.cm-container {
+  width: 100%;
+  max-width: 560px;          /* ligeiramente mais largo que o login */
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Brand */
+.cm-brand {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.cm-logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  margin-bottom: var(--space-md);
+  color: white;
+  animation: scaleIn 0.5s ease-out;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cm-brand-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-white);
+  letter-spacing: -0.5px;
+  margin-bottom: var(--space-xs);
+}
+
+.cm-brand-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+/* Card */
+.cm-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+.cm-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-lg);
+}
+
+.cm-card-header-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.cm-card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.cm-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+/* Form */
+.cm-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Label de seção separadora */
+.cm-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--primary);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--primary-lightest);
+  margin: var(--space-sm) 0 var(--space-xs);
+}
+
+/* Field */
+.cm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cm-field--animated {
+  animation: fadeInUp 0.3s ease-out both;
+}
+
+.cm-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.cm-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cm-required { color: var(--status-cancelled); margin-left: 2px; }
+
+/* Input wrapper */
+.cm-input-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  min-height: 46px;
+  gap: 8px;
+}
+
+.cm-input-wrap:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(19, 81, 180, 0.1);
+  background: white;
+}
+
+.cm-input-wrap--error {
+  border-color: #E53E3E !important;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.08) !important;
+}
+
+.cm-input-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.cm-input-wrap input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  outline: none;
+  padding: 10px 0;
+}
+
+.cm-input-wrap input::placeholder { color: var(--text-muted); }
+
+.cm-toggle-pw {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+  font-family: var(--font-family);
+}
+
+.cm-toggle-pw:hover { color: var(--primary); }
+
+/* Select */
+.cm-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cm-select {
+  width: 100%;
+  appearance: none;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 40px 11px 14px;
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: pointer;
+}
+
+.cm-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(19, 81, 180, 0.1);
+  background: white;
+}
+
+.cm-select-icon {
+  position: absolute;
+  right: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ============================================================
+   PERFIL CARDS — Radio buttons estilizados
+   ============================================================ */
+.cm-perfil-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.cm-radio-hidden {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.cm-perfil-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-input);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.cm-perfil-card:hover {
+  border-color: var(--primary-lighter);
+  background: white;
+  transform: translateY(-1px);
+}
+
+.cm-perfil-card--active {
+  border-color: var(--primary);
+  background: var(--primary-lightest);
+  box-shadow: 0 0 0 3px rgba(19, 81, 180, 0.1);
+}
+
+.cm-perfil-card-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cm-perfil-card-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 2px;
+}
+
+.cm-perfil-card-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cm-perfil-card--active .cm-perfil-card-name {
+  color: var(--primary-dark);
+}
+
+/* Error */
+.cm-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #E53E3E;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Submit */
+.cm-submit {
+  margin-top: var(--space-md);
+  width: 100%;
+  min-height: 50px;
+  background: var(--gradient-header);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--shadow-btn);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cm-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 89, 178, 0.35);
+}
+
+.cm-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cm-spin { animation: spin 0.6s linear infinite; }
+
+/* Toggle login */
+.cm-toggle {
+  text-align: center;
+  margin-top: var(--space-sm);
+}
+
+.cm-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: all var(--transition-fast);
+}
+
+.cm-toggle-btn:hover {
+  color: var(--primary-dark);
+  background: var(--primary-bg);
+  text-decoration: underline;
+}
+
+/* Footer */
+.cm-footer {
+  text-align: center;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (min-width: 768px) {
+  .cm-card { padding: var(--space-2xl); }
+  .cm-brand-title { font-size: 2.4rem; }
+}
+
+@media (max-width: 560px) {
+  .cm-row { grid-template-columns: 1fr; }
+  .cm-perfil-group { grid-template-columns: 1fr; }
+}

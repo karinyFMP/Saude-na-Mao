@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './contexts/AuthContext';
 import { AdminAuthProvider, useAdminAuth } from './contexts/AdminAuthContext';
+import { MedicoAuthProvider, useMedicoAuth } from './contexts/MedicoAuthContext';
 
 import './App.css';
 import Login from './components/Login';
@@ -13,6 +14,10 @@ import Perfil from './components/Perfil';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminProtocoloDetails from './components/admin/AdminProtocoloDetails';
+import MedicoLogin from './components/medico/MedicoLogin';
+import CadastroMedico from './components/medico/CadastroMedico';
+import PainelMedico from './components/medico/PainelMedico';
+import MedicoProtocoloDetails from './components/medico/MedicoProtocoloDetails';
 
 // Componente para proteger rotas privadas do PACIENTE (sem alteração)
 const PrivateRoute = ({ children }) => {
@@ -25,7 +30,7 @@ const PrivateRoute = ({ children }) => {
   return signed ? children : <Navigate to="/login" replace />;
 };
 
-// Componente para proteger rotas do SERVIDOR (isolado do PrivateRoute)
+// Componente para proteger rotas do SERVIDOR/AUDITOR (isolado do PrivateRoute)
 const AdminRoute = ({ children }) => {
   const { signedAdmin, loadingAdmin } = useAdminAuth();
 
@@ -33,7 +38,18 @@ const AdminRoute = ({ children }) => {
     return <div className="loading-spinner">Carregando...</div>;
   }
 
-  return signedAdmin ? children : <Navigate to="/admin/login" replace />;
+  return signedAdmin ? children : <Navigate to="/auditor/login" replace />;
+};
+
+// Componente para proteger rotas do MÉDICO (Clínico Geral e Especialista)
+const MedicoRoute = ({ children }) => {
+  const { signedMedico, loadingMedico } = useMedicoAuth();
+
+  if (loadingMedico) {
+    return <div className="loading-spinner">Carregando...</div>;
+  }
+
+  return signedMedico ? children : <Navigate to="/medico/login" replace />;
 };
 
 function App() {
@@ -109,7 +125,7 @@ function App() {
             ROTAS DO SERVIDOR — Isoladas, envolvidas no AdminAuthProvider
             ============================================================ */}
         <Route
-          path="/admin/login"
+          path="/auditor/login"
           element={
             <AdminAuthProvider>
               <AdminLoginWrapper />
@@ -117,7 +133,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/dashboard"
+          path="/auditor/dashboard"
           element={
             <AdminAuthProvider>
               <AdminRoute>
@@ -127,13 +143,53 @@ function App() {
           }
         />
         <Route
-          path="/admin/protocolo/:id"
+          path="/auditor/protocolo/:id"
           element={
             <AdminAuthProvider>
               <AdminRoute>
                 <AdminProtocoloDetails />
               </AdminRoute>
             </AdminAuthProvider>
+          }
+        />
+
+        {/* ============================================================
+            ROTAS DO MÉDICO — Clínico Geral e Especialista
+            ============================================================ */}
+        <Route
+          path="/medico/login"
+          element={
+            <MedicoAuthProvider>
+              <MedicoLoginWrapper />
+            </MedicoAuthProvider>
+          }
+        />
+        <Route
+          path="/medico/cadastro"
+          element={
+            <MedicoAuthProvider>
+              <CadastroMedico />
+            </MedicoAuthProvider>
+          }
+        />
+        <Route
+          path="/medico/dashboard"
+          element={
+            <MedicoAuthProvider>
+              <MedicoRoute>
+                <PainelMedico />
+              </MedicoRoute>
+            </MedicoAuthProvider>
+          }
+        />
+        <Route
+          path="/medico/protocolo/:id"
+          element={
+            <MedicoAuthProvider>
+              <MedicoRoute>
+                <MedicoProtocoloDetails />
+              </MedicoRoute>
+            </MedicoAuthProvider>
           }
         />
 
@@ -144,11 +200,18 @@ function App() {
   );
 }
 
-// Wrapper para redirecionar servidor já logado ao acessar /admin/login
+// Wrapper para redirecionar servidor/auditor já logado ao acessar /auditor/login
 function AdminLoginWrapper() {
   const { signedAdmin, loadingAdmin } = useAdminAuth();
   if (loadingAdmin) return <div className="loading-spinner">Carregando...</div>;
-  return signedAdmin ? <Navigate to="/admin/dashboard" replace /> : <AdminLogin />;
+  return signedAdmin ? <Navigate to="/auditor/dashboard" replace /> : <AdminLogin />;
+}
+
+// Wrapper para redirecionar médico já logado ao acessar /medico/login
+function MedicoLoginWrapper() {
+  const { signedMedico, loadingMedico } = useMedicoAuth();
+  if (loadingMedico) return <div className="loading-spinner">Carregando...</div>;
+  return signedMedico ? <Navigate to="/medico/dashboard" replace /> : <MedicoLogin />;
 }
 
 export default App;
