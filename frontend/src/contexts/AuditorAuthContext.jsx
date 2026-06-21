@@ -1,10 +1,10 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 
-export const AdminAuthContext = createContext({});
+export const AuditorAuthContext = createContext({});
 
-export const AdminAuthProvider = ({ children }) => {
+export const AuditorAuthProvider = ({ children }) => {
   const [servidor, setServidor] = useState(null);
-  const [loadingAdmin, setLoadingAdmin] = useState(true);
+  const [loadingAuditor, setLoadingAuditor] = useState(true);
 
   useEffect(() => {
     const storedServidor = localStorage.getItem('@SaudeNaMao:servidor');
@@ -12,7 +12,7 @@ export const AdminAuthProvider = ({ children }) => {
     if (storedServidor && storedToken) {
       setServidor(JSON.parse(storedServidor));
     }
-    setLoadingAdmin(false);
+    setLoadingAuditor(false);
   }, []);
 
   const loginServidor = (dadosServidor, token) => {
@@ -30,17 +30,17 @@ export const AdminAuthProvider = ({ children }) => {
   const getToken = () => localStorage.getItem('@SaudeNaMao:servidor_token');
 
   return (
-    <AdminAuthContext.Provider value={{
-      signedAdmin: !!servidor,
+    <AuditorAuthContext.Provider value={{
+      signedAuditor: !!servidor,
       servidor,
-      loadingAdmin,
+      loadingAuditor,
       loginServidor,
       logoutServidor,
       getToken,
     }}>
       {children}
-    </AdminAuthContext.Provider>
+    </AuditorAuthContext.Provider>
   );
 };
 
-export const useAdminAuth = () => useContext(AdminAuthContext);
+export const useAuditorAuth = () => useContext(AuditorAuthContext);

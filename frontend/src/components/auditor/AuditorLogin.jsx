@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, User, Lock, Eye, EyeOff, AlertCircle, LogIn } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { useAdminAuth } from '../../contexts/AdminAuthContext';
-import { adminLogin } from '../../services/adminApi';
+import { useAuditorAuth } from '../../contexts/AuditorAuthContext';
+import { auditorLogin } from '../../services/auditorApi';
 import logoImg from '../../assets/images/icone.png';
-import './AdminLogin.css';
+import './AuditorLogin.css';
 
-export default function AdminLogin() {
-  const { loginServidor } = useAdminAuth();
+export default function AuditorLogin() {
+  const { loginServidor } = useAuditorAuth();
   const navigate = useNavigate();
 
   const [cpf, setCpf] = useState('');
@@ -21,8 +21,8 @@ export default function AdminLogin() {
     const digits = value.replace(/\D/g, '').slice(0, 11);
     return digits
       .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
   };
 
   const handleCpfChange = (e) => {
@@ -49,7 +49,7 @@ export default function AdminLogin() {
 
     setLoading(true);
     try {
-      const data = await adminLogin(cpf, senha);
+      const data = await auditorLogin(cpf, senha);
       loginServidor(data.servidor, data.token);
       toast.success(`Bem-vindo, ${data.servidor.nome}!`);
       navigate('/auditor/dashboard', { replace: true });
@@ -62,44 +62,44 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="admin-login-page">
+    <div className="auditor-login-page">
       {/* Círculos decorativos — mesmo padrão do login do paciente */}
-      <div className="admin-login-bg">
-        <div className="admin-login-bg-circle admin-login-bg-circle-1" />
-        <div className="admin-login-bg-circle admin-login-bg-circle-2" />
-        <div className="admin-login-bg-circle admin-login-bg-circle-3" />
+      <div className="auditor-login-bg">
+        <div className="auditor-login-bg-circle auditor-login-bg-circle-1" />
+        <div className="auditor-login-bg-circle auditor-login-bg-circle-2" />
+        <div className="auditor-login-bg-circle auditor-login-bg-circle-3" />
       </div>
 
-      <div className="admin-login-container">
+      <div className="auditor-login-container">
         {/* Brand */}
-        <div className="admin-login-brand">
-          <div className="admin-login-logo-wrap" style={{ padding: 0, background: 'transparent', border: 'none' }}>
+        <div className="auditor-login-brand">
+          <div className="auditor-login-logo-wrap" style={{ padding: 0, background: 'transparent', border: 'none' }}>
             <img src={logoImg} alt="Logotipo Saúde na Mão" width="64" height="64" style={{ borderRadius: '14px', objectFit: 'cover' }} />
           </div>
-          <h1 className="admin-login-title">Painel do Servidor</h1>
-          <p className="admin-login-subtitle">Saúde na Mão — Área de Auditoria</p>
+          <h1 className="auditor-login-title">Painel do Servidor</h1>
+          <p className="auditor-login-subtitle">Saúde na Mão — Área de Auditoria</p>
         </div>
 
         {/* Card */}
-        <div className="admin-login-card">
-          <div className="admin-restricted-badge">
-            <span className="admin-restricted-dot" />
+        <div className="auditor-login-card">
+          <div className="auditor-restricted-badge">
+            <span className="auditor-restricted-dot" />
             Acesso Restrito
           </div>
 
-          <h2 className="admin-login-card-title">Entrar no painel</h2>
-          <p className="admin-login-card-desc">
-            Acesso exclusivo para servidores e atendentes autorizados.
+          <h2 className="auditor-login-card-title">Entrar no painel</h2>
+          <p className="auditor-login-card-desc">
+            Acesso exclusivo para auditores.
           </p>
 
           <form onSubmit={handleSubmit} noValidate>
             {/* CPF */}
-            <div className="admin-field">
-              <label htmlFor="admin-cpf">CPF de Acesso</label>
-              <div className={`admin-input-wrap ${errors.cpf ? 'error' : ''}`}>
-                <User size={16} className="admin-input-icon" />
+            <div className="auditor-field">
+              <label htmlFor="auditor-cpf">CPF de Acesso</label>
+              <div className={`auditor-input-wrap ${errors.cpf ? 'error' : ''}`}>
+                <User size={16} className="auditor-input-icon" />
                 <input
-                  id="admin-cpf"
+                  id="auditor-cpf"
                   type="text"
                   placeholder="000.000.000-00"
                   value={cpf}
@@ -109,21 +109,21 @@ export default function AdminLogin() {
                 />
               </div>
               {errors.cpf && (
-                <span className="admin-field-error">
+                <span className="auditor-field-error">
                   <AlertCircle size={13} /> {errors.cpf}
                 </span>
               )}
             </div>
 
             {/* Senha */}
-            <div className="admin-field">
-              <label htmlFor="admin-senha">Senha</label>
-              <div className={`admin-input-wrap ${errors.senha ? 'error' : ''}`}>
-                <Lock size={16} className="admin-input-icon" />
+            <div className="auditor-field">
+              <label htmlFor="auditor-senha">Senha</label>
+              <div className={`auditor-input-wrap ${errors.senha ? 'error' : ''}`}>
+                <Lock size={16} className="auditor-input-icon" />
                 <input
-                  id="admin-senha"
+                  id="auditor-senha"
                   type={showSenha ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   value={senha}
                   onChange={(e) => {
                     setSenha(e.target.value);
@@ -134,7 +134,7 @@ export default function AdminLogin() {
                 />
                 <button
                   type="button"
-                  className="admin-toggle-pass"
+                  className="auditor-toggle-pass"
                   onClick={() => setShowSenha(v => !v)}
                   aria-label={showSenha ? 'Ocultar senha' : 'Mostrar senha'}
                 >
@@ -142,21 +142,21 @@ export default function AdminLogin() {
                 </button>
               </div>
               {errors.senha && (
-                <span className="admin-field-error">
+                <span className="auditor-field-error">
                   <AlertCircle size={13} /> {errors.senha}
                 </span>
               )}
             </div>
 
             <button
-              id="admin-login-btn"
+              id="auditor-login-btn"
               type="submit"
-              className="admin-submit-btn"
+              className="auditor-submit-btn"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <span className="admin-spinner" />
+                  <span className="auditor-spinner" />
                   Autenticando...
                 </>
               ) : (
@@ -169,9 +169,9 @@ export default function AdminLogin() {
           </form>
         </div>
 
-        <p className="admin-login-footer">
+        <p className="auditor-login-footer">
           <Shield size={12} />
-          Acesso monitorado · © 2026 Saúde na Mão
+          Acesso monitorado • © 2026 Saúde na Mão
         </p>
       </div>
     </div>

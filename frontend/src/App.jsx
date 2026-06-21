@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './contexts/AuthContext';
-import { AdminAuthProvider, useAdminAuth } from './contexts/AdminAuthContext';
+import { AuditorAuthProvider, useAuditorAuth } from './contexts/AuditorAuthContext';
 import { MedicoAuthProvider, useMedicoAuth } from './contexts/MedicoAuthContext';
 
 import './App.css';
@@ -11,9 +11,9 @@ import Agendamento from './components/Agendamento';
 import Protocolos from './components/Protocolos';
 import UnidadesSaude from './components/UnidadesSaude';
 import Perfil from './components/Perfil';
-import AdminLogin from './components/admin/AdminLogin';
-import AdminDashboard from './components/admin/AdminDashboard';
-import AdminProtocoloDetails from './components/admin/AdminProtocoloDetails';
+import AuditorLogin from './components/auditor/AuditorLogin';
+import AuditorDashboard from './components/auditor/AuditorDashboard';
+import AuditorProtocoloDetails from './components/auditor/AuditorProtocoloDetails';
 import MedicoLogin from './components/medico/MedicoLogin';
 import CadastroMedico from './components/medico/CadastroMedico';
 import PainelMedico from './components/medico/PainelMedico';
@@ -31,14 +31,14 @@ const PrivateRoute = ({ children }) => {
 };
 
 // Componente para proteger rotas do SERVIDOR/AUDITOR (isolado do PrivateRoute)
-const AdminRoute = ({ children }) => {
-  const { signedAdmin, loadingAdmin } = useAdminAuth();
+const AuditorRoute = ({ children }) => {
+  const { signedAuditor, loadingAuditor } = useAuditorAuth();
 
-  if (loadingAdmin) {
+  if (loadingAuditor) {
     return <div className="loading-spinner">Carregando...</div>;
   }
 
-  return signedAdmin ? children : <Navigate to="/auditor/login" replace />;
+  return signedAuditor ? children : <Navigate to="/auditor/login" replace />;
 };
 
 // Componente para proteger rotas do MÉDICO (Clínico Geral e Especialista)
@@ -122,34 +122,34 @@ function App() {
         <Route path="/unidades" element={<UnidadesSaude onBack={() => navigate(-1)} />} />
 
         {/* ============================================================
-            ROTAS DO SERVIDOR — Isoladas, envolvidas no AdminAuthProvider
+            ROTAS DO SERVIDOR — Isoladas, envolvidas no AuditorAuthProvider
             ============================================================ */}
         <Route
           path="/auditor/login"
           element={
-            <AdminAuthProvider>
-              <AdminLoginWrapper />
-            </AdminAuthProvider>
+            <AuditorAuthProvider>
+              <AuditorLoginWrapper />
+            </AuditorAuthProvider>
           }
         />
         <Route
           path="/auditor/dashboard"
           element={
-            <AdminAuthProvider>
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            </AdminAuthProvider>
+            <AuditorAuthProvider>
+              <AuditorRoute>
+                <AuditorDashboard />
+              </AuditorRoute>
+            </AuditorAuthProvider>
           }
         />
         <Route
           path="/auditor/protocolo/:id"
           element={
-            <AdminAuthProvider>
-              <AdminRoute>
-                <AdminProtocoloDetails />
-              </AdminRoute>
-            </AdminAuthProvider>
+            <AuditorAuthProvider>
+              <AuditorRoute>
+                <AuditorProtocoloDetails />
+              </AuditorRoute>
+            </AuditorAuthProvider>
           }
         />
 
@@ -201,10 +201,10 @@ function App() {
 }
 
 // Wrapper para redirecionar servidor/auditor já logado ao acessar /auditor/login
-function AdminLoginWrapper() {
-  const { signedAdmin, loadingAdmin } = useAdminAuth();
-  if (loadingAdmin) return <div className="loading-spinner">Carregando...</div>;
-  return signedAdmin ? <Navigate to="/auditor/dashboard" replace /> : <AdminLogin />;
+function AuditorLoginWrapper() {
+  const { signedAuditor, loadingAuditor } = useAuditorAuth();
+  if (loadingAuditor) return <div className="loading-spinner">Carregando...</div>;
+  return signedAuditor ? <Navigate to="/auditor/dashboard" replace /> : <AuditorLogin />;
 }
 
 // Wrapper para redirecionar médico já logado ao acessar /medico/login

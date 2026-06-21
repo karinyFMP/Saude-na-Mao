@@ -1,9 +1,9 @@
-/* ============================================================
+﻿/* ============================================================
    ADMIN LOGIN — Área Restrita do Servidor
    Segue o mesmo design system da área do paciente (index.css tokens)
    ============================================================ */
 
-.admin-login-page {
+.auditor-login-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -16,20 +16,20 @@
 }
 
 /* Círculos decorativos — idênticos ao login do paciente */
-.admin-login-bg {
+.auditor-login-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
 }
 
-.admin-login-bg-circle {
+.auditor-login-bg-circle {
   position: absolute;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
 }
 
-.admin-login-bg-circle-1 {
+.auditor-login-bg-circle-1 {
   width: 400px;
   height: 400px;
   top: -100px;
@@ -37,7 +37,7 @@
   animation: pulse 8s ease-in-out infinite;
 }
 
-.admin-login-bg-circle-2 {
+.auditor-login-bg-circle-2 {
   width: 300px;
   height: 300px;
   bottom: -80px;
@@ -46,7 +46,7 @@
   animation-delay: 2s;
 }
 
-.admin-login-bg-circle-3 {
+.auditor-login-bg-circle-3 {
   width: 200px;
   height: 200px;
   top: 40%;
@@ -56,7 +56,7 @@
 }
 
 /* Container */
-.admin-login-container {
+.auditor-login-container {
   width: 100%;
   max-width: 420px;
   position: relative;
@@ -65,12 +65,12 @@
 }
 
 /* Brand */
-.admin-login-brand {
+.auditor-login-brand {
   text-align: center;
   margin-bottom: var(--space-xl);
 }
 
-.admin-login-logo-wrap {
+.auditor-login-logo-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -85,7 +85,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.admin-login-title {
+.auditor-login-title {
   font-size: 2rem;
   font-weight: 800;
   color: var(--text-white);
@@ -93,14 +93,14 @@
   margin-bottom: var(--space-xs);
 }
 
-.admin-login-subtitle {
+.auditor-login-subtitle {
   font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 400;
 }
 
 /* Badge "Área Restrita" */
-.admin-restricted-badge {
+.auditor-restricted-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -116,7 +116,7 @@
   margin-bottom: var(--space-md);
 }
 
-.admin-restricted-dot {
+.auditor-restricted-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -125,32 +125,32 @@
 }
 
 /* Card — idêntico ao .login-card */
-.admin-login-card {
+.auditor-login-card {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
   padding: var(--space-xl);
   box-shadow: var(--shadow-xl);
 }
 
-.admin-login-card-title {
+.auditor-login-card-title {
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--space-xs);
 }
 
-.admin-login-card-desc {
+.auditor-login-card-desc {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-bottom: var(--space-lg);
 }
 
 /* Fields — igual ao .login-field */
-.admin-field {
+.auditor-field {
   margin-bottom: var(--space-md);
 }
 
-.admin-field label {
+.auditor-field label {
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
@@ -158,7 +158,7 @@
   margin-bottom: 6px;
 }
 
-.admin-input-wrap {
+.auditor-input-wrap {
   display: flex;
   align-items: center;
   background: var(--bg-input);
@@ -169,23 +169,23 @@
   min-height: 48px;
 }
 
-.admin-input-wrap:focus-within {
+.auditor-input-wrap:focus-within {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.12);
 }
 
-.admin-input-wrap.error {
+.auditor-input-wrap.error {
   border-color: var(--status-cancelled);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
-.admin-input-icon {
+.auditor-input-icon {
   color: var(--text-muted);
   flex-shrink: 0;
   margin-right: var(--space-sm);
 }
 
-.admin-input-wrap input {
+.auditor-input-wrap input {
   flex: 1;
   border: none;
   background: transparent;
@@ -195,11 +195,11 @@
   font-family: var(--font-family);
 }
 
-.admin-input-wrap input::placeholder {
+.auditor-input-wrap input::placeholder {
   color: var(--text-muted);
 }
 
-.admin-toggle-pass {
+.auditor-toggle-pass {
   background: none;
   color: var(--text-muted);
   padding: 4px;
@@ -208,11 +208,11 @@
   transition: color var(--transition-fast);
 }
 
-.admin-toggle-pass:hover {
+.auditor-toggle-pass:hover {
   color: var(--primary);
 }
 
-.admin-field-error {
+.auditor-field-error {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -224,7 +224,7 @@
 }
 
 /* Submit — igual ao .login-submit */
-.admin-submit-btn {
+.auditor-submit-btn {
   width: 100%;
   min-height: 48px;
   display: flex;
@@ -244,22 +244,22 @@
   font-family: var(--font-family);
 }
 
-.admin-submit-btn:hover:not(:disabled) {
+.auditor-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(0, 89, 178, 0.35);
 }
 
-.admin-submit-btn:active:not(:disabled) {
+.auditor-submit-btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.admin-submit-btn:disabled {
+.auditor-submit-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
 /* Spinner */
-.admin-spinner {
+.auditor-spinner {
   width: 22px;
   height: 22px;
   border: 3px solid rgba(255, 255, 255, 0.3);
@@ -269,7 +269,7 @@
 }
 
 /* Footer */
-.admin-login-footer {
+.auditor-login-footer {
   text-align: center;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.5);
@@ -282,10 +282,10 @@
 
 /* Desktop */
 @media (min-width: 768px) {
-  .admin-login-card {
+  .auditor-login-card {
     padding: var(--space-2xl);
   }
-  .admin-login-title {
+  .auditor-login-title {
     font-size: 2.4rem;
   }
 }

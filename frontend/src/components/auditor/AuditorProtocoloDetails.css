@@ -2,14 +2,14 @@
    ADMIN PROTOCOLO DETAILS
    ============================================================ */
 
-.admin-details-page {
+.auditor-details-page {
   min-height: 100vh;
   padding-bottom: 40px;
   background: var(--primary-bg);
   font-family: var(--font-family);
 }
 
-.admin-details-main {
+.auditor-details-main {
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;
@@ -17,21 +17,28 @@
   animation: fadeInUp 0.4s ease-out both;
 }
 
-/* Novo Grid 1/3 e 2/3 */
-.admin-details-grid {
+/* Grid: coluna esquerda (paciente) | coluna direita (médico + encaminhamento) */
+.auditor-details-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-xl);
 }
 
+.auditor-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
 @media (min-width: 900px) {
-  .admin-details-grid {
+  .auditor-details-grid {
     grid-template-columns: 1fr 2fr;
+    align-items: start;
   }
 }
 
 /* Header de ações do detalhe */
-.admin-details-header {
+.auditor-details-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,13 +47,13 @@
   flex-wrap: wrap;
 }
 
-.admin-details-header-left {
+.auditor-details-header-left {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.admin-back-btn {
+.auditor-back-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,14 +68,14 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
-.admin-back-btn:hover {
+.auditor-back-btn:hover {
   background: var(--bg-input);
   color: var(--primary);
   border-color: var(--primary-light);
   transform: translateX(-2px);
 }
 
-.admin-details-title {
+.auditor-details-title {
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--primary-dark);
@@ -77,7 +84,7 @@
   align-items: center;
 }
 
-.admin-header-badge {
+.auditor-header-badge {
   padding: 4px 12px;
   border-radius: 100px;
   font-size: 0.8rem;
@@ -86,19 +93,19 @@
   letter-spacing: 0.5px;
 }
 
-.admin-header-badge.Emanálise { background: var(--status-pending-bg); color: var(--status-pending); }
-.admin-header-badge.Aprovado { background: var(--status-approved-bg); color: var(--status-approved); }
-.admin-header-badge.Negado { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
-.admin-header-badge.Concluído { background: var(--status-done-bg); color: var(--status-done); }
+.auditor-header-badge.Emanálise { background: var(--status-pending-bg); color: var(--status-pending); }
+.auditor-header-badge.Aprovado { background: var(--status-approved-bg); color: var(--status-approved); }
+.auditor-header-badge.Negado { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
+.auditor-header-badge.Concluído { background: var(--status-done-bg); color: var(--status-done); }
 
-.admin-header-actions {
+.auditor-header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
 /* Cards */
-.admin-details-card {
+.auditor-details-card {
   background: white;
   border-radius: 16px;
   padding: var(--space-xl);
@@ -107,7 +114,7 @@
   height: max-content;
 }
 
-.admin-details-card h3 {
+.auditor-details-card h3 {
   font-size: 1.1rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -119,38 +126,38 @@
   padding-bottom: 12px;
 }
 
-/* Listas de informações */
-.admin-patient-info-list {
+/* Listas de informaÃ§Ãµes */
+.auditor-patient-info-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.admin-protocol-info-grid {
+.auditor-protocol-info-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
 }
 
 @media (min-width: 600px) {
-  .admin-protocol-info-grid {
+  .auditor-protocol-info-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 600px) {
-  .admin-patient-info-grid {
+  .auditor-patient-info-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.admin-info-item {
+.auditor-info-item {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.admin-info-label {
+.auditor-info-label {
   font-size: 0.75rem;
   font-weight: 600;
   color: #64748B;
@@ -158,15 +165,15 @@
   letter-spacing: 0.05em;
 }
 
-.admin-info-value {
-  font-size: 1.1rem;
+.auditor-info-value {
+  font-size: 1rem;
   font-weight: 700;
   color: #0F172A;
   line-height: 1.3;
 }
 
 /* Descrição */
-.admin-description-box {
+.auditor-description-box {
   background: #F8FAFC;
   padding: 20px;
   border-radius: 12px;
@@ -179,13 +186,13 @@
 }
 
 /* Área de Parecer / Textarea */
-.admin-parecer-wrapper {
+.auditor-parecer-wrapper {
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #E2E8F0;
 }
 
-.admin-parecer-label {
+.auditor-parecer-label {
   display: block;
   font-size: 0.9rem;
   font-weight: 700;
@@ -193,7 +200,7 @@
   margin-bottom: 10px;
 }
 
-.admin-parecer-textarea {
+.auditor-parecer-textarea {
   width: 100%;
   min-height: 140px;
   padding: 14px;
@@ -208,14 +215,14 @@
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.admin-parecer-textarea:focus {
+.auditor-parecer-textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(19, 81, 180, 0.1);
 }
 
 /* Ações de Status */
-.admin-status-actions {
+.auditor-status-actions {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
@@ -225,20 +232,20 @@
   border: 1px solid #E2E8F0;
 }
 
-.admin-status-actions-title {
+.auditor-status-actions-title {
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 8px;
 }
 
-.admin-btn-group {
+.auditor-btn-group {
   display: flex;
   gap: var(--space-md);
   flex-wrap: wrap;
 }
 
-.admin-action-btn {
+.auditor-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -254,37 +261,37 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.admin-action-btn:disabled {
+.auditor-action-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.admin-btn-approve {
+.auditor-btn-approve {
   background: linear-gradient(135deg, #00884A, #10B981);
 }
-.admin-btn-approve:hover:not(:disabled) {
+.auditor-btn-approve:hover:not(:disabled) {
   box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
   transform: translateY(-2px);
 }
 
-.admin-btn-deny {
+.auditor-btn-deny {
   background: linear-gradient(135deg, #DC2626, #EF4444);
 }
-.admin-btn-deny:hover:not(:disabled) {
+.auditor-btn-deny:hover:not(:disabled) {
   box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4);
   transform: translateY(-2px);
 }
 
-.admin-btn-conclude {
+.auditor-btn-conclude {
   background: linear-gradient(135deg, #4F46E5, #6366F1);
 }
-.admin-btn-conclude:hover:not(:disabled) {
+.auditor-btn-conclude:hover:not(:disabled) {
   box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
   transform: translateY(-2px);
 }
 
 /* Read Only Status Badge (Large) */
-.admin-status-readonly {
+.auditor-status-readonly {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -294,12 +301,13 @@
   font-size: 1rem;
 }
 
-.admin-status-readonly.Aprovado { background: var(--status-approved-bg); color: var(--status-approved); }
-.admin-status-readonly.Negado { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
-.admin-status-readonly.Concluído { background: var(--status-done-bg); color: var(--status-done); }
+.auditor-status-readonly.Emanálise { background: var(--status-pending-bg); color: var(--status-pending); }
+.auditor-status-readonly.Aprovado { background: var(--status-approved-bg); color: var(--status-approved); }
+.auditor-status-readonly.Negado { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
+.auditor-status-readonly.Concluído { background: var(--status-done-bg); color: var(--status-done); }
 
 /* Loading state */
-.admin-details-loading {
+.auditor-details-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -310,7 +318,7 @@
 }
 
 /* Missing utility for action icon */
-.admin-action-icon-btn {
+.auditor-action-icon-btn {
   background: none;
   border: none;
   color: var(--primary);
@@ -322,7 +330,7 @@
   align-items: center;
   justify-content: center;
 }
-.admin-action-icon-btn:hover {
+.auditor-action-icon-btn:hover {
   background: var(--primary-bg);
   color: var(--primary-dark);
 }

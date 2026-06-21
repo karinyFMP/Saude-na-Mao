@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 // ============================================================
-// MOCKS — devem vir ANTES de qualquer import do código alvo
+// MOCKS â€” devem vir ANTES de qualquer import do cÃ³digo alvo
 // ============================================================
 
 vi.mock('react-toastify', () => ({
@@ -21,10 +21,10 @@ vi.mock('react-router-dom', async (importOriginal) => {
 });
 
 // Mock de CSS para evitar falha no JSDOM
-vi.mock('../components/admin/AdminProtocoloDetails.css', () => ({}));
+vi.mock('../components/admin/AuditorProtocoloDetails.css', () => ({}));
 
-vi.mock('../contexts/AdminAuthContext', () => ({
-  useAdminAuth: () => ({
+vi.mock('../contexts/AuditorAuthContext', () => ({
+  useAuditorAuth: () => ({
     servidor: { nome: 'Admin Teste' },
     logoutServidor: vi.fn(),
   }),
@@ -40,16 +40,16 @@ vi.mock('../services/adminApi', () => ({
 
 // Import DEPOIS dos mocks
 import { toast } from 'react-toastify';
-import AdminProtocoloDetails from '../components/admin/AdminProtocoloDetails.jsx';
+import AuditorProtocoloDetails from '../components/admin/AuditorProtocoloDetails.jsx';
 
 // ============================================================
-// DADOS DE REFERÊNCIA (Seed Fake)
+// DADOS DE REFERÃŠNCIA (Seed Fake)
 // ============================================================
 const protocoloEmAnalise = {
   id: 1,
   especialidade: 'Cardiologia',
   descricao: 'Encaminhamento para ecocardiograma urgente.',
-  status: 'Em análise',
+  status: 'Em anÃ¡lise',
   data_pedido: '2026-04-25',
   paciente_nome: 'Maria Silva',
   paciente_cpf: '123.456.789-00',
@@ -61,14 +61,14 @@ const protocoloEmAnalise = {
 const renderComponent = () =>
   render(
     <MemoryRouter initialEntries={['/admin/protocolo/1']}>
-      <AdminProtocoloDetails />
+      <AuditorProtocoloDetails />
     </MemoryRouter>
   );
 
 // ============================================================
-// SUÍTE A: Renderização e Exibição de Dados
+// SUÃTE A: RenderizaÃ§Ã£o e ExibiÃ§Ã£o de Dados
 // ============================================================
-describe('🖥️ AdminProtocoloDetails — Renderização', () => {
+describe('ðŸ–¥ï¸ AuditorProtocoloDetails â€” RenderizaÃ§Ã£o', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetProtocolo.mockResolvedValue(protocoloEmAnalise);
@@ -88,7 +88,7 @@ describe('🖥️ AdminProtocoloDetails — Renderização', () => {
     );
   });
 
-  it('TC-F03 | Deve exibir o textarea de Parecer quando status é "Em análise"', async () => {
+  it('TC-F03 | Deve exibir o textarea de Parecer quando status Ã© "Em anÃ¡lise"', async () => {
     renderComponent();
     await waitFor(() => {
       const textarea = screen.getByRole('textbox');
@@ -97,7 +97,7 @@ describe('🖥️ AdminProtocoloDetails — Renderização', () => {
     });
   });
 
-  it('TC-F04 | Deve exibir os botões Negar e Aprovar quando "Em análise"', async () => {
+  it('TC-F04 | Deve exibir os botÃµes Negar e Aprovar quando "Em anÃ¡lise"', async () => {
     renderComponent();
     await waitFor(() => {
       expect(screen.getByText('Negar Pedido')).toBeInTheDocument();
@@ -107,22 +107,22 @@ describe('🖥️ AdminProtocoloDetails — Renderização', () => {
 });
 
 // ============================================================
-// SUÍTE B: Regras de Negócio (UX)
+// SUÃTE B: Regras de NegÃ³cio (UX)
 // ============================================================
-describe('🛡️ AdminProtocoloDetails — Regras de Negócio', () => {
+describe('ðŸ›¡ï¸ AuditorProtocoloDetails â€” Regras de NegÃ³cio', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetProtocolo.mockResolvedValue(protocoloEmAnalise);
   });
 
-  it('TC-F05 | CRÍTICO: Deve BLOQUEAR negação sem preencher o Parecer', async () => {
+  it('TC-F05 | CRÃTICO: Deve BLOQUEAR negaÃ§Ã£o sem preencher o Parecer', async () => {
     const user = userEvent.setup();
     renderComponent();
 
     await waitFor(() => screen.getByText('Negar Pedido'));
     await user.click(screen.getByText('Negar Pedido'));
 
-    // API NÃO deve ser chamada
+    // API NÃƒO deve ser chamada
     expect(mockUpdateStatus).not.toHaveBeenCalled();
     // Toast de erro deve disparar
     expect(toast.error).toHaveBeenCalledWith(
@@ -130,7 +130,7 @@ describe('🛡️ AdminProtocoloDetails — Regras de Negócio', () => {
     );
   });
 
-  it('TC-F06 | Deve BLOQUEAR negação com apenas espaços em branco (validação trim)', async () => {
+  it('TC-F06 | Deve BLOQUEAR negaÃ§Ã£o com apenas espaÃ§os em branco (validaÃ§Ã£o trim)', async () => {
     const user = userEvent.setup();
     renderComponent();
 
@@ -142,7 +142,7 @@ describe('🛡️ AdminProtocoloDetails — Regras de Negócio', () => {
     expect(toast.error).toHaveBeenCalledTimes(1);
   });
 
-  it('TC-F07 | Deve PERMITIR aprovação sem preencher o Parecer (campo opcional)', async () => {
+  it('TC-F07 | Deve PERMITIR aprovaÃ§Ã£o sem preencher o Parecer (campo opcional)', async () => {
     const user = userEvent.setup();
     mockUpdateStatus.mockResolvedValue({ protocolo: { status: 'Aprovado' } });
     renderComponent();
@@ -155,13 +155,13 @@ describe('🛡️ AdminProtocoloDetails — Regras de Negócio', () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
-  it('TC-F08 | Deve chamar a API com "Negado" quando Parecer está preenchido', async () => {
+  it('TC-F08 | Deve chamar a API com "Negado" quando Parecer estÃ¡ preenchido', async () => {
     const user = userEvent.setup();
     mockUpdateStatus.mockResolvedValue({ protocolo: { status: 'Negado' } });
     renderComponent();
 
     await waitFor(() => screen.getByRole('textbox'));
-    await user.type(screen.getByRole('textbox'), 'Documentação médica insuficiente para aprovação.');
+    await user.type(screen.getByRole('textbox'), 'DocumentaÃ§Ã£o mÃ©dica insuficiente para aprovaÃ§Ã£o.');
     await user.click(screen.getByText('Negar Pedido'));
 
     expect(mockUpdateStatus).toHaveBeenCalledWith('1', 'Negado');
@@ -170,19 +170,19 @@ describe('🛡️ AdminProtocoloDetails — Regras de Negócio', () => {
 });
 
 // ============================================================
-// SUÍTE C: Resiliência e Tratamento de Erros
+// SUÃTE C: ResiliÃªncia e Tratamento de Erros
 // ============================================================
-describe('💥 AdminProtocoloDetails — Resiliência', () => {
+describe('ðŸ’¥ AuditorProtocoloDetails â€” ResiliÃªncia', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('TC-F09 | Deve exibir tela de carregamento enquanto busca dados', () => {
-    // Promise que nunca resolve — simula rede lenta
+    // Promise que nunca resolve â€” simula rede lenta
     mockGetProtocolo.mockReturnValue(new Promise(() => {}));
     renderComponent();
     expect(screen.getByText(/carregando/i)).toBeInTheDocument();
   });
 
-  it('TC-F10 | Deve chamar toast.success após aprovação bem-sucedida', async () => {
+  it('TC-F10 | Deve chamar toast.success apÃ³s aprovaÃ§Ã£o bem-sucedida', async () => {
     const user = userEvent.setup();
     mockGetProtocolo.mockResolvedValue(protocoloEmAnalise);
     mockUpdateStatus.mockResolvedValue({ protocolo: { status: 'Aprovado' } });
@@ -196,7 +196,7 @@ describe('💥 AdminProtocoloDetails — Resiliência', () => {
     );
   });
 
-  it('TC-F11 | Deve disparar toast.error quando a API de atualização falha', async () => {
+  it('TC-F11 | Deve disparar toast.error quando a API de atualizaÃ§Ã£o falha', async () => {
     const user = userEvent.setup();
     mockGetProtocolo.mockResolvedValue(protocoloEmAnalise);
     mockUpdateStatus.mockRejectedValue(new Error('Network Error'));

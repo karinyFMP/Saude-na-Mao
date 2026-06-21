@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, LogOut, RefreshCw, Search, Filter,
@@ -6,9 +6,9 @@ import {
   Loader2, FileX, AlertTriangle, LayoutDashboard, FileSearch,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { useAdminAuth } from '../../contexts/AdminAuthContext';
-import { getAdminProtocolos } from '../../services/adminApi';
-import './AdminDashboard.css';
+import { useAuditorAuth } from '../../contexts/AuditorAuthContext';
+import { getAuditorProtocolos } from '../../services/auditorApi';
+import './AuditorDashboard.css';
 
 // --- Helpers ---
 const STATUS_OPTIONS = ['Em análise', 'Aprovado', 'Negado', 'Concluído'];
@@ -38,7 +38,7 @@ function formatDate(dateStr) {
 function StatusBadge({ status }) {
   const meta = STATUS_META[status] || { cls: '', icon: null };
   return (
-    <span className={`admin-status-badge ${meta.cls}`}>
+    <span className={`auditor-status-badge ${meta.cls}`}>
       {meta.icon}
       {status}
     </span>
@@ -46,8 +46,8 @@ function StatusBadge({ status }) {
 }
 
 // ---- Main Component ----
-export default function AdminDashboard() {
-  const { servidor, logoutServidor } = useAdminAuth();
+export default function AuditorDashboard() {
+  const { servidor, logoutServidor } = useAuditorAuth();
   const navigate = useNavigate();
 
   const [protocolos, setProtocolos] = useState([]);
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
       const filtros = {};
       if (filterStatus !== 'Todos') filtros.status = filterStatus;
       if (filterPaciente.trim()) filtros.paciente = filterPaciente.trim();
-      const data = await getAdminProtocolos(filtros);
+      const data = await getAuditorProtocolos(filtros);
       setProtocolos(data);
     } catch (err) {
       setLoadingError(true);
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     logoutServidor();
     toast.info('Sessão encerrada.');
-    navigate('/admin/login', { replace: true });
+    navigate('/auditor/login', { replace: true });
   };
 
   const stats = {
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="admin-dashboard">
+    <div className="auditor-dashboard">
 
       {/* Modern Header (Identical to patient's Dashboard) */}
       <header className="dash-header-compact" style={{ 
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
             <p className="dash-patient-bar-greeting">Olá, <strong>{servidor?.nome?.split(' ')[0] || 'Servidor'}</strong></p>
             <div className="dash-patient-bar-details">
               <span>Cargo: {servidor?.cargo || 'Auditor'}</span>
-              <span className="dot-separator">•</span>
+              <span className="dot-separator">â€¢</span>
               <span>Acesso Restrito</span>
             </div>
           </div>
@@ -145,11 +145,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main */}
-      <main className="admin-main">
+      <main className="auditor-main">
 
         {/* Stats (Using same structure as Patient's Services Grid, but 5 in a row) */}
         <section className="dash-section dash-services-section">
-          <div className="dash-services-dense-grid admin-stats-grid">
+          <div className="dash-services-dense-grid auditor-stats-grid">
             {STAT_CARDS.map(s => (
               <div key={s.key} className="dash-service-card-new" style={{ cursor: 'default' }}>
                 <div className={`service-card-icon ${STAT_ICONS[s.key].bgClass}`}>
@@ -168,22 +168,22 @@ export default function AdminDashboard() {
         </section>
 
         {/* Section */}
-        <div className="admin-section">
-          <div className="admin-section-header">
-            <span className="admin-section-title">Protocolos de Encaminhamento</span>
-            <span className="admin-section-count">
+        <div className="auditor-section">
+          <div className="auditor-section-header">
+            <span className="auditor-section-title">Protocolos de Encaminhamento</span>
+            <span className="auditor-section-count">
               {loading ? '...' : `${protocolos.length} registro(s)`}
             </span>
           </div>
 
           {/* Filters */}
-          <form className="admin-filters" onSubmit={handleSearch}>
-            <div className="admin-filter-field">
-              <label htmlFor="admin-filter-paciente">Buscar paciente</label>
-              <div className="admin-filter-input-wrap">
-                <Search size={14} className="admin-filter-icon" />
+          <form className="auditor-filters" onSubmit={handleSearch}>
+            <div className="auditor-filter-field">
+              <label htmlFor="auditor-filter-paciente">Buscar paciente</label>
+              <div className="auditor-filter-input-wrap">
+                <Search size={14} className="auditor-filter-icon" />
                 <input
-                  id="admin-filter-paciente"
+                  id="auditor-filter-paciente"
                   type="text"
                   placeholder="Nome do paciente..."
                   value={filterPaciente}
@@ -192,12 +192,12 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="admin-filter-field" style={{ maxWidth: 220 }}>
-              <label htmlFor="admin-filter-status">Filtrar por status</label>
-              <div className="admin-filter-input-wrap">
-                <Filter size={14} className="admin-filter-icon" />
+            <div className="auditor-filter-field" style={{ maxWidth: 220 }}>
+              <label htmlFor="auditor-filter-status">Filtrar por status</label>
+              <div className="auditor-filter-input-wrap">
+                <Filter size={14} className="auditor-filter-icon" />
                 <select
-                  id="admin-filter-status"
+                  id="auditor-filter-status"
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value)}
                 >
@@ -207,9 +207,9 @@ export default function AdminDashboard() {
             </div>
 
             <button
-              id="admin-refresh-btn"
+              id="auditor-refresh-btn"
               type="submit"
-              className={`admin-refresh-btn ${refreshing ? 'spinning' : ''}`}
+              className={`auditor-refresh-btn ${refreshing ? 'spinning' : ''}`}
               disabled={refreshing}
             >
               <RefreshCw size={14} />
@@ -218,9 +218,9 @@ export default function AdminDashboard() {
           </form>
 
           {/* Table */}
-          <div className="admin-table-wrapper">
-            <div className="admin-table-scroll">
-              <table className="admin-table">
+          <div className="auditor-table-wrapper">
+            <div className="auditor-table-scroll">
+              <table className="auditor-table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -234,27 +234,27 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr className="admin-state-row">
+                    <tr className="auditor-state-row">
                       <td colSpan={7}>
-                        <div className="admin-loading-state">
+                        <div className="auditor-loading-state">
                           <Loader2 size={36} />
                           <p>Carregando protocolos...</p>
                         </div>
                       </td>
                     </tr>
                   ) : loadingError ? (
-                    <tr className="admin-state-row">
+                    <tr className="auditor-state-row">
                       <td colSpan={7}>
-                        <div className="admin-error-state">
+                        <div className="auditor-error-state">
                           <AlertTriangle size={36} />
                           <p>Erro ao carregar dados. Tente novamente.</p>
                         </div>
                       </td>
                     </tr>
                   ) : protocolos.length === 0 ? (
-                    <tr className="admin-state-row">
+                    <tr className="auditor-state-row">
                       <td colSpan={7}>
-                        <div className="admin-empty-state">
+                        <div className="auditor-empty-state">
                           <FileX size={36} />
                           <p>Nenhum protocolo encontrado para os filtros selecionados.</p>
                         </div>
@@ -268,9 +268,9 @@ export default function AdminDashboard() {
                             #{p.id}
                           </td>
                           <td>
-                            <div className="admin-patient-cell">
-                              <span className="admin-patient-name">{p.paciente_nome}</span>
-                              <span className="admin-patient-cpf">{p.paciente_cpf}</span>
+                            <div className="auditor-patient-cell">
+                              <span className="auditor-patient-name">{p.paciente_nome}</span>
+                              <span className="auditor-patient-cpf">{p.paciente_cpf}</span>
                             </div>
                           </td>
                           <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
@@ -282,10 +282,10 @@ export default function AdminDashboard() {
                             <StatusBadge status={p.status} />
                           </td>
                           <td>
-                            <div className="admin-action-cell">
+                            <div className="auditor-action-cell">
                               <button
-                                className="admin-action-icon-btn"
-                                onClick={() => navigate(`/admin/protocolo/${p.id}`)}
+                                className="auditor-action-icon-btn"
+                                onClick={() => navigate(`/auditor/protocolo/${p.id}`)}
                                 title="Analisar Protocolo"
                               >
                                 <FileSearch size={18} />

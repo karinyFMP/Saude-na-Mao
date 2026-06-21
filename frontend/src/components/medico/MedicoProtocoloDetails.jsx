@@ -8,7 +8,7 @@ import {
 import { useMedicoAuth } from '../../contexts/MedicoAuthContext';
 import { getProtocoloDetalhes } from '../../services/medicoApi';
 
-import '../admin/AdminProtocoloDetails.css'; // Reutilizando os mesmos estilos do Admin por padronização
+import '../auditor/AuditorProtocoloDetails.css';
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
@@ -45,8 +45,8 @@ export default function MedicoProtocoloDetails() {
 
   if (loading) {
     return (
-      <div className="admin-details-page">
-        <div className="admin-details-loading">
+      <div className="auditor-details-page">
+        <div className="auditor-details-loading">
           <Loader2 size={40} style={{ animation: 'spin 1s linear infinite', color: 'var(--primary)' }} />
           <h2>Carregando informações...</h2>
         </div>
@@ -57,7 +57,7 @@ export default function MedicoProtocoloDetails() {
   if (!protocolo) return null;
 
   return (
-    <div className="admin-details-page">
+    <div className="auditor-details-page">
       <header className="dash-header-compact" style={{ 
         background: 'var(--primary-dark)', 
         padding: '24px 0',
@@ -71,84 +71,115 @@ export default function MedicoProtocoloDetails() {
         </div>
       </header>
 
-      <main className="admin-details-main">
-        <div className="admin-details-header">
-          <div className="admin-details-header-left">
-            <button className="admin-back-btn" onClick={() => navigate('/medico/dashboard')} title="Voltar">
+      <main className="auditor-details-main">
+        <div className="auditor-details-header">
+          <div className="auditor-details-header-left">
+            <button className="auditor-back-btn" onClick={() => navigate('/medico/dashboard')} title="Voltar">
               <ArrowLeft size={18} />
             </button>
-            <h2 className="admin-details-title">
+            <h2 className="auditor-details-title">
               Protocolo #{protocolo.id}
             </h2>
-            <div className={`admin-header-badge ${protocolo.status.replace(' ', '')}`}>
+            <div className={`auditor-header-badge ${protocolo.status.replace(' ', '')}`}>
               {protocolo.status}
             </div>
           </div>
         </div>
 
-        <div className="admin-details-grid">
-          {/* Card 1: Paciente Info */}
-          <div className="admin-details-card">
+        <div className="auditor-details-grid">
+
+          {/* Coluna Esquerda: Paciente */}
+          <div className="auditor-details-card">
             <h3><User size={18} /> Informações do Paciente</h3>
-            <div className="admin-patient-info-list">
-              <div className="admin-info-item">
-                <span className="admin-info-label">Nome Completo</span>
-                <span className="admin-info-value">{protocolo.paciente_nome}</span>
+            <div className="auditor-patient-info-list">
+              <div className="auditor-info-item">
+                <span className="auditor-info-label">Nome Completo</span>
+                <span className="auditor-info-value">{protocolo.paciente_nome}</span>
               </div>
-              <div className="admin-info-item">
-                <span className="admin-info-label">CPF</span>
-                <span className="admin-info-value">{protocolo.paciente_cpf}</span>
+              <div className="auditor-info-item">
+                <span className="auditor-info-label">CPF</span>
+                <span className="auditor-info-value">{protocolo.paciente_cpf}</span>
               </div>
             </div>
           </div>
 
-          {/* Card 2: Exame/Pedido Info */}
-          <div className="admin-details-card">
-            <h3><FileText size={18} /> Detalhes da Solicitação</h3>
-            <div className="admin-protocol-info-grid" style={{ marginBottom: 24 }}>
-              <div className="admin-info-item">
-                <span className="admin-info-label">Especialidade / Tipo</span>
-                <span className="admin-info-value" style={{ color: 'var(--primary)' }}>
-                  {protocolo.tipo_protocolo || protocolo.especialidade}
-                </span>
-              </div>
-              <div className="admin-info-item">
-                <span className="admin-info-label">Prioridade</span>
-                <span className="admin-info-value">{protocolo.prioridade || 'Não informada'}</span>
-              </div>
-              <div className="admin-info-item">
-                <span className="admin-info-label">Data do Pedido</span>
-                <span className="admin-info-value" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={16} style={{color: '#64748B'}}/> {formatDate(protocolo.data_pedido)}
-                </span>
-              </div>
-            </div>
-            
-            <div className="admin-info-item" style={{ marginBottom: 16 }}>
-              <span className="admin-info-label">Descrição / Justificativa Médica</span>
-              <div className="admin-description-box">
-                <div style={{ marginBottom: protocolo.parecer_medico ? '12px' : '0' }}>
-                  {protocolo.descricao || 'Nenhuma descrição fornecida.'}
+          {/* Coluna Direita: Médico + Detalhes empilhados */}
+          <div className="auditor-right-col">
+
+            {/* Card: Médico Solicitante */}
+            <div className="auditor-details-card">
+              <h3><Stethoscope size={18} /> Médico Solicitante</h3>
+              <div className="auditor-patient-info-list">
+                <div className="auditor-info-item">
+                  <span className="auditor-info-label">Nome</span>
+                  <span className="auditor-info-value">
+                    {protocolo.medico_solicitante_nome || 'Não informado'}
+                  </span>
                 </div>
-                {protocolo.parecer_medico && (
-                  <div style={{ paddingTop: '12px', borderTop: '1px dashed #CBD5E1' }}>
-                    <strong>Parecer:</strong> {protocolo.parecer_medico}
-                  </div>
-                )}
+                <div className="auditor-info-item">
+                  <span className="auditor-info-label">Especialidade</span>
+                  <span className="auditor-info-value" style={{ color: 'var(--primary)' }}>
+                    {protocolo.medico_solicitante_especialidade || 'Não informada'}
+                  </span>
+                </div>
+                <div className="auditor-info-item">
+                  <span className="auditor-info-label">CRM</span>
+                  <span className="auditor-info-value">
+                    {protocolo.medico_solicitante_crm || 'Não informado'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Ações / Status de Resposta */}
-            <div className="admin-parecer-wrapper" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginTop: 24 }}>
-              <div className={`admin-status-readonly ${protocolo.status.replace(' ', '')}`}>
-                {protocolo.status === 'Em análise' && <Clock size={18}/>}
-                {protocolo.status === 'Aprovado' && <CheckCircle2 size={18}/>}
-                {protocolo.status === 'Negado' && <XCircle size={18}/>}
-                {protocolo.status === 'Concluído' && <CheckCheck size={18}/>}
-                Status atual: {protocolo.status.toUpperCase()}
+            {/* Card: Detalhes da Solicitação */}
+            <div className="auditor-details-card">
+              <h3><FileText size={18} /> Detalhes da Solicitação</h3>
+              <div className="auditor-protocol-info-grid" style={{ marginBottom: 24 }}>
+                <div className="auditor-info-item">
+                  <span className="auditor-info-label">Especialidade / Tipo</span>
+                  <span className="auditor-info-value" style={{ color: 'var(--primary)' }}>
+                    {protocolo.tipo_protocolo || protocolo.especialidade}
+                  </span>
+                </div>
+                <div className="auditor-info-item">
+                  <span className="auditor-info-label">Prioridade</span>
+                  <span className="auditor-info-value">{protocolo.prioridade || 'Não informada'}</span>
+                </div>
+                <div className="auditor-info-item">
+                  <span className="auditor-info-label">Data do Pedido</span>
+                  <span className="auditor-info-value" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Calendar size={16} style={{color: '#64748B'}}/> {formatDate(protocolo.data_pedido)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="auditor-info-item" style={{ marginBottom: 16 }}>
+                <span className="auditor-info-label">Descrição / Justificativa Médica</span>
+                <div className="auditor-description-box">
+                  <div style={{ marginBottom: protocolo.parecer_medico ? '12px' : '0' }}>
+                    {protocolo.descricao || 'Nenhuma descrição fornecida.'}
+                  </div>
+                  {protocolo.parecer_medico && (
+                    <div style={{ paddingTop: '12px', borderTop: '1px dashed #CBD5E1' }}>
+                      <strong>Parecer:</strong> {protocolo.parecer_medico}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Status de Resposta */}
+              <div className="auditor-parecer-wrapper" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <div className={`auditor-status-readonly ${protocolo.status.replace(' ', '')}`}>
+                  {protocolo.status === 'Em análise' && <Clock size={18}/>}
+                  {protocolo.status === 'Aprovado' && <CheckCircle2 size={18}/>}
+                  {protocolo.status === 'Negado' && <XCircle size={18}/>}
+                  {protocolo.status === 'Concluído' && <CheckCheck size={18}/>}
+                  Status atual: {protocolo.status.toUpperCase()}
+                </div>
               </div>
             </div>
-          </div>
+
+          </div>{/* fim auditor-right-col */}
         </div>
       </main>
     </div>

@@ -333,9 +333,9 @@ async function seedDatabase() {
 
   for (const p of protocolosMocados) {
     await runAsync(
-      \`INSERT INTO protocolos 
+      `INSERT INTO protocolos 
       (paciente_id, especialidade, descricao, status, data_pedido, data_resposta, tipo_protocolo, prioridade, parecer_medico, medico_id) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [p.paciente_id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.tipo_protocolo, p.prioridade, p.parecer_medico, p.medico_id]
     );
   }

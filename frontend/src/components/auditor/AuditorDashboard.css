@@ -1,8 +1,8 @@
-/* ============================================================
+﻿/* ============================================================
    ADMIN DASHBOARD — Gerenciamento de Protocolos
    ============================================================ */
 
-.admin-dashboard {
+.auditor-dashboard {
   min-height: 100vh;
   padding-bottom: 40px;
   background: var(--primary-bg);
@@ -10,7 +10,7 @@
 }
 
 /* ---- MAIN CONTENT ---- */
-.admin-main {
+.auditor-main {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -18,7 +18,7 @@
 }
 
 /* ---- SECTION HEADER — igual ao .dash-section-header ---- */
-.admin-section {
+.auditor-section {
   margin-bottom: var(--space-xl);
   animation: fadeInUp 0.4s ease-out both;
   animation-delay: 0.15s;
@@ -26,25 +26,25 @@
 
 /* ---- CUSTOM STATS GRID ---- */
 @media (min-width: 1024px) {
-  .dash-services-dense-grid.admin-stats-grid {
+  .dash-services-dense-grid.auditor-stats-grid {
     grid-template-columns: repeat(5, 1fr);
   }
 }
 
-.admin-section-header {
+.auditor-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-md);
 }
 
-.admin-section-title {
+.auditor-section-title {
   font-size: 1.1rem;
   font-weight: 800;
   color: var(--primary-dark);
 }
 
-.admin-section-count {
+.auditor-section-count {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -55,7 +55,7 @@
 }
 
 /* ---- FILTERS CARD ---- */
-.admin-filters {
+.auditor-filters {
   background: white;
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 0.8);
@@ -68,7 +68,7 @@
   align-items: flex-end;
 }
 
-.admin-filter-field {
+.auditor-filter-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -76,13 +76,13 @@
   min-width: 180px;
 }
 
-.admin-filter-field label {
+.auditor-filter-field label {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
 
-.admin-filter-input-wrap {
+.auditor-filter-input-wrap {
   display: flex;
   align-items: center;
   background: var(--bg-input);
@@ -94,18 +94,18 @@
   min-height: 44px;
 }
 
-.admin-filter-input-wrap:focus-within {
+.auditor-filter-input-wrap:focus-within {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.1);
 }
 
-.admin-filter-icon {
+.auditor-filter-icon {
   color: var(--text-muted);
   flex-shrink: 0;
 }
 
-.admin-filter-input-wrap input,
-.admin-filter-input-wrap select {
+.auditor-filter-input-wrap input,
+.auditor-filter-input-wrap select {
   flex: 1;
   background: transparent;
   border: none;
@@ -116,12 +116,12 @@
   font-family: var(--font-family);
 }
 
-.admin-filter-input-wrap select option {
+.auditor-filter-input-wrap select option {
   background: white;
   color: var(--text-primary);
 }
 
-.admin-refresh-btn {
+.auditor-refresh-btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -141,16 +141,16 @@
   min-height: 44px;
 }
 
-.admin-refresh-btn:hover:not(:disabled) {
+.auditor-refresh-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(0, 89, 178, 0.35);
 }
 
-.admin-refresh-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-.admin-refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
+.auditor-refresh-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.auditor-refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
 
 /* ---- TABLE CARD ---- */
-.admin-table-wrapper {
+.auditor-table-wrapper {
   background: white;
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 0.8);
@@ -158,21 +158,21 @@
   overflow: hidden;
 }
 
-.admin-table-scroll {
+.auditor-table-scroll {
   overflow-x: auto;
 }
 
-table.admin-table {
+table.auditor-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.admin-table thead tr {
+.auditor-table thead tr {
   border-bottom: 2px solid #F1F5F9;
   background: #F8FAFC;
 }
 
-.admin-table thead th {
+.auditor-table thead th {
   padding: 12px 16px;
   text-align: left;
   font-size: 0.75rem;
@@ -183,16 +183,16 @@ table.admin-table {
   white-space: nowrap;
 }
 
-.admin-table tbody tr {
+.auditor-table tbody tr {
   border-bottom: 1px solid #F1F5F9;
   transition: background var(--transition-fast);
 }
 
-.admin-table tbody tr:last-child { border-bottom: none; }
+.auditor-table tbody tr:last-child { border-bottom: none; }
 
-.admin-table tbody tr:hover { background: var(--primary-bg); }
+.auditor-table tbody tr:hover { background: var(--primary-bg); }
 
-.admin-table td {
+.auditor-table td {
   padding: 14px 16px;
   font-size: 0.875rem;
   color: var(--text-secondary);
@@ -200,26 +200,26 @@ table.admin-table {
 }
 
 /* Patient cell */
-.admin-patient-cell {
+.auditor-patient-cell {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.admin-patient-name {
+.auditor-patient-name {
   font-weight: 700;
   color: var(--text-primary);
   font-size: 0.9rem;
 }
 
-.admin-patient-cpf {
+.auditor-patient-cpf {
   font-size: 0.75rem;
   color: var(--text-muted);
   font-family: monospace;
 }
 
-/* ---- STATUS BADGE — mesmo padrão do .proto-status ---- */
-.admin-status-badge {
+/* ---- STATUS BADGE — mesmo padrÃ£o do .proto-status ---- */
+.auditor-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -230,28 +230,28 @@ table.admin-table {
   white-space: nowrap;
 }
 
-.admin-status-badge.em-analise {
+.auditor-status-badge.em-analise {
   background: var(--status-analysis-bg);
   color: var(--status-analysis);
 }
 
-.admin-status-badge.aprovado {
+.auditor-status-badge.aprovado {
   background: var(--status-approved-bg);
   color: var(--status-approved);
 }
 
-.admin-status-badge.negado {
+.auditor-status-badge.negado {
   background: var(--status-cancelled-bg);
   color: var(--status-cancelled);
 }
 
-.admin-status-badge.concluido {
+.auditor-status-badge.concluido {
   background: var(--status-done-bg);
   color: var(--status-done);
 }
 
 /* ---- STATUS SELECT ---- */
-.admin-status-select {
+.auditor-status-select {
   background: var(--bg-input);
   border: 2px solid var(--border);
   color: var(--text-primary);
@@ -265,13 +265,13 @@ table.admin-table {
   min-width: 140px;
 }
 
-.admin-status-select:focus {
+.auditor-status-select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.1);
 }
 
 /* ---- SAVE BUTTON ---- */
-.admin-save-btn {
+.auditor-save-btn {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -289,21 +289,21 @@ table.admin-table {
   font-family: var(--font-family);
 }
 
-.admin-save-btn:hover:not(:disabled) {
+.auditor-save-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(0, 136, 74, 0.35);
 }
 
-.admin-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.auditor-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.admin-action-cell {
+.auditor-action-cell {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 /* Saved indicator */
-.admin-saved-indicator {
+.auditor-saved-indicator {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -314,36 +314,36 @@ table.admin-table {
 }
 
 /* ---- EMPTY / LOADING / ERROR STATES ---- */
-.admin-state-row td {
+.auditor-state-row td {
   text-align: center;
   padding: 60px 24px;
 }
 
-.admin-empty-state,
-.admin-loading-state,
-.admin-error-state {
+.auditor-empty-state,
+.auditor-loading-state,
+.auditor-error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-md);
 }
 
-.admin-empty-state svg { color: var(--text-muted); }
-.admin-loading-state svg { color: var(--primary-light); animation: spin 1s linear infinite; }
-.admin-error-state svg { color: var(--status-cancelled); }
+.auditor-empty-state svg { color: var(--text-muted); }
+.auditor-loading-state svg { color: var(--primary-light); animation: spin 1s linear infinite; }
+.auditor-error-state svg { color: var(--status-cancelled); }
 
-.admin-empty-state p,
-.admin-loading-state p { color: var(--text-muted); font-size: 0.9rem; }
-.admin-error-state p { color: var(--status-cancelled); font-size: 0.9rem; }
+.auditor-empty-state p,
+.auditor-loading-state p { color: var(--text-muted); font-size: 0.9rem; }
+.auditor-error-state p { color: var(--status-cancelled); font-size: 0.9rem; }
 
 /* ---- RESPONSIVE ---- */
 @media (min-width: 768px) {
-  .admin-header { padding: var(--space-md) 0; }
-  .admin-header-title { font-size: 1.5rem; }
+  .auditor-header { padding: var(--space-md) 0; }
+  .auditor-header-title { font-size: 1.5rem; }
 }
 
 @media (max-width: 640px) {
-  .admin-user-info { display: none; }
-  .admin-filters { flex-direction: column; }
-  .admin-filter-field { min-width: 100%; }
+  .auditor-user-info { display: none; }
+  .auditor-filters { flex-direction: column; }
+  .auditor-filter-field { min-width: 100%; }
 }
