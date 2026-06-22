@@ -41,11 +41,17 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
   // Medicamentos do protocolo
   const medicamentos = protocolo?.medicamentos || defaultMedicamentos;
 
-  // ── Três novas informações ───────────────────────────────────
-  // Lê do objeto protocolo; se ausente, usa valores do mockProtocolo
+  // ── Perfil de Usuário e Informações do Protocolo ─────────────
+  const tipoUsuario        = protocolo?.tipoUsuario      || mockProtocolo.tipoUsuario;
+  const medicosDisponiveis = protocolo?.medicosDisponiveis || mockProtocolo.medicosDisponiveis;
+
   const localRealizacao    = protocolo?.local            || mockProtocolo.local;
-  const medicoResponsavel  = protocolo?.medicoResponsavel || mockProtocolo.medicoResponsavel;
   const dataRealizacao     = protocolo?.dataRealizacao    || mockProtocolo.dataRealizacao;
+
+  // Estado para armazenar o médico responsável selecionado
+  const [selectedMedico, setSelectedMedico] = useState(
+    protocolo?.medicoResponsavel || mockProtocolo.medicoResponsavel
+  );
 
   // ── PDF Export (react-to-print) ───────────────────────────
   // printRef aponta para o componente oculto PrintableContent.
@@ -170,7 +176,7 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
                 <circle cx="12" cy="7" r="4"/>
               </svg>
               <span className="vp-proto-meta-label">Médico</span>
-              <span className="vp-proto-meta-value">{medicoResponsavel}</span>
+              <span className="vp-proto-meta-value">{selectedMedico}</span>
             </div>
 
             {/* Data de realização */}
@@ -344,9 +350,22 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
                 {/* Médico responsável (campo dedicado, diferente do "medico" geral) */}
                 <div className="vp-info-item vp-info-item-full">
                   <span className="vp-info-label">Dr(a). Responsável pelo Protocolo</span>
-                  <span className="vp-info-value vp-info-value-highlight">
-                    {medicoResponsavel}
-                  </span>
+                  {tipoUsuario === 'auditor' ? (
+                    <select
+                      className="vp-info-select"
+                      value={selectedMedico}
+                      onChange={(e) => setSelectedMedico(e.target.value)}
+                      aria-label="Selecionar médico responsável"
+                    >
+                      {medicosDisponiveis.map(med => (
+                        <option key={med} value={med}>{med}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="vp-info-value vp-info-value-highlight">
+                      {selectedMedico}
+                    </span>
+                  )}
                 </div>
               </div>
             </section>
@@ -578,7 +597,7 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
           medicamentos={medicamentos}
           observacoes={observacoes}
           localRealizacao={localRealizacao}
-          medicoResponsavel={medicoResponsavel}
+          medicoResponsavel={selectedMedico}
           dataRealizacao={dataRealizacao}
           formatDate={formatDate}
         />
@@ -1022,13 +1041,24 @@ const PrintableContent = forwardRef(function PrintableContent(
 // }
 // ────────────────────────────────────────────────────────────────
 
-/** Mock: três novas informações exibidas na tela de visualização */
+/** Mock: três novas informações exibidas na tela de visualização e perfil logado */
 const mockProtocolo = {
+  // Perfil simulado (teste trocando para 'paciente')
+  tipoUsuario: 'auditor',
+
   // Local onde o protocolo será realizado (unidade, sala, andar)
   local: 'UBS Vila Mariana — Sala 04, 2º andar',
 
-  // Nome completo e CRM do médico responsável pelo protocolo
+  // Nome completo e CRM do médico responsável pelo protocolo atualmente atribuído
   medicoResponsavel: 'Dra. Fernanda Costa (CRM-SP 123456)',
+
+  // Lista de médicos disponíveis para seleção (apenas para o auditor)
+  medicosDisponiveis: [
+    'Dra. Fernanda Costa (CRM-SP 123456)',
+    'Dr. Ricardo Melo (CRM-SP 654321)',
+    'Dra. Amanda Silva (CRM-SP 112233)',
+    'Dr. Carlos Oliveira (CRM-SP 445566)'
+  ],
 
   // Data prevista de realização do protocolo (formato ISO YYYY-MM-DD)
   dataRealizacao: '2024-07-15',
