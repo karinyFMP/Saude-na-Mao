@@ -147,6 +147,45 @@
 .vp-proto-desc {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.75);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Banner com as 3 novas informações (no cabeçalho) ─────── */
+.vp-proto-meta-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(4px);
+}
+
+/* Cada linha do banner (ícone + rótulo + valor) */
+.vp-proto-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Rótulo ("Local", "Médico", "Data") */
+.vp-proto-meta-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+  min-width: 48px; /* alinha os valores */
+}
+
+/* Valor — nome, data ou endereço */
+.vp-proto-meta-value {
+  font-weight: 600;
+  color: white;
 }
 
 /* ── Cards de métricas ──────────────────────────────────────── */
@@ -326,6 +365,21 @@
 .vp-info-status-done      { background: var(--status-done-bg);     color: var(--status-done);     }
 .vp-info-status-denied    { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
 .vp-info-status-pending   { background: var(--status-pending-bg);  color: var(--status-pending);  }
+
+/* Item que ocupa as duas colunas da grade (médico responsável) */
+.vp-info-item-full {
+  grid-column: 1 / -1;
+  padding-top: var(--space-sm);
+  border-top: 1px dashed var(--border);
+  margin-top: var(--space-xs);
+}
+
+/* Valor em destaque (negrito + cor primária) */
+.vp-info-value-highlight {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
 
 /* ── Lista de medicamentos ──────────────────────────────────── */
 .vp-meds-list {

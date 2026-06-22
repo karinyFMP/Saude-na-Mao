@@ -40,6 +40,12 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
   // Medicamentos do protocolo
   const medicamentos = protocolo?.medicamentos || defaultMedicamentos;
 
+  // ── Três novas informações ───────────────────────────────────
+  // Lê do objeto protocolo; se ausente, usa valores do mockProtocolo
+  const localRealizacao    = protocolo?.local            || mockProtocolo.local;
+  const medicoResponsavel  = protocolo?.medicoResponsavel || mockProtocolo.medicoResponsavel;
+  const dataRealizacao     = protocolo?.dataRealizacao    || mockProtocolo.dataRealizacao;
+
   return (
     <div className="vp-page">
 
@@ -98,6 +104,47 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
           <p className="vp-proto-desc">
             {protocolo?.descricao || 'Protocolo de acompanhamento clínico especializado'}
           </p>
+
+          {/* ── Banner com as três novas informações ─────────── */}
+          {/* Exibido no cabeçalho para visibilidade imediata     */}
+          <div className="vp-proto-meta-banner">
+
+            {/* Local de realização */}
+            <div className="vp-proto-meta-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="rgba(255,255,255,0.85)" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span className="vp-proto-meta-label">Local</span>
+              <span className="vp-proto-meta-value">{localRealizacao}</span>
+            </div>
+
+            {/* Médico responsável */}
+            <div className="vp-proto-meta-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="rgba(255,255,255,0.85)" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span className="vp-proto-meta-label">Médico</span>
+              <span className="vp-proto-meta-value">{medicoResponsavel}</span>
+            </div>
+
+            {/* Data de realização */}
+            <div className="vp-proto-meta-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="rgba(255,255,255,0.85)" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span className="vp-proto-meta-label">Data</span>
+              <span className="vp-proto-meta-value">{formatDate(dataRealizacao)}</span>
+            </div>
+
+          </div>
         </div>
       </header>
 
@@ -235,6 +282,28 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
                   <span className="vp-info-label">Status</span>
                   <span className={`vp-info-status vp-info-status-${sc.cls}`}>
                     {sc.icon} {sc.label}
+                  </span>
+                </div>
+
+                {/* ── Três novas informações na grade ──────────── */}
+
+                {/* Local de realização */}
+                <div className="vp-info-item">
+                  <span className="vp-info-label">Local de Realização</span>
+                  <span className="vp-info-value">{localRealizacao}</span>
+                </div>
+
+                {/* Data de realização */}
+                <div className="vp-info-item">
+                  <span className="vp-info-label">Data de Realização</span>
+                  <span className="vp-info-value">{formatDate(dataRealizacao)}</span>
+                </div>
+
+                {/* Médico responsável (campo dedicado, diferente do "medico" geral) */}
+                <div className="vp-info-item vp-info-item-full">
+                  <span className="vp-info-label">Dr(a). Responsável pelo Protocolo</span>
+                  <span className="vp-info-value vp-info-value-highlight">
+                    {medicoResponsavel}
                   </span>
                 </div>
               </div>
@@ -453,6 +522,32 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
     </div>
   );
 }
+
+// ────────────────────────────────────────────────────────────────
+// mockProtocolo — objeto JSON com as três novas informações.
+// Usado como fallback quando o protocolo real não possui esses campos.
+// Para testar visualmente, basta não passar essas props no objeto
+// protocolo e os valores abaixo serão exibidos automaticamente.
+//
+// Exemplo do objeto JSON mock completo:
+// {
+//   local:            'UBS Vila Mariana — Sala 04, 2º andar',
+//   medicoResponsavel: 'Dra. Fernanda Costa (CRM-SP 123456)',
+//   dataRealizacao:   '2024-07-15',
+// }
+// ────────────────────────────────────────────────────────────────
+
+/** Mock: três novas informações exibidas na tela de visualização */
+const mockProtocolo = {
+  // Local onde o protocolo será realizado (unidade, sala, andar)
+  local: 'UBS Vila Mariana — Sala 04, 2º andar',
+
+  // Nome completo e CRM do médico responsável pelo protocolo
+  medicoResponsavel: 'Dra. Fernanda Costa (CRM-SP 123456)',
+
+  // Data prevista de realização do protocolo (formato ISO YYYY-MM-DD)
+  dataRealizacao: '2024-07-15',
+};
 
 // ────────────────────────────────────────────────────────────────
 // Dados de exemplo usados quando o protocolo não possui os campos
