@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, forwardRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import './VisualizarProtocolo.css';
 
 // ----------------------------------------------------------------
@@ -46,6 +47,25 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
   const medicoResponsavel  = protocolo?.medicoResponsavel || mockProtocolo.medicoResponsavel;
   const dataRealizacao     = protocolo?.dataRealizacao    || mockProtocolo.dataRealizacao;
 
+  // ── PDF Export (react-to-print) ───────────────────────────
+  // printRef aponta para o componente oculto PrintableContent.
+  // Ele renderiza todas as informações do protocolo em layout
+  // linear (sem abas), garantindo que o PDF fique completo.
+  const printRef = useRef(null);
+
+  // handlePrint dispara o diálogo de impressão / "Salvar como PDF"
+  // do próprio navegador. Não precisa de servidor nem upload.
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Protocolo_${protocolo?.especialidade || 'Medico'}_${paciente?.nome || 'Paciente'}`,
+    pageStyle: `
+      @page { size: A4; margin: 20mm 15mm; }
+      @media print {
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      }
+    `,
+  });
+
   return (
     <div className="vp-page">
 
@@ -56,7 +76,7 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
         <div className="vp-header-circle vp-header-circle-2" />
 
         <div className="vp-header-content">
-          {/* Linha topo: botão voltar + badge de status */}
+          {/* Linha topo: botão voltar + badge de status + botão PDF */}
           <div className="vp-header-top">
             <button className="vp-back-btn" onClick={onBack} aria-label="Voltar">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -64,9 +84,31 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
                 <polyline points="15 18 9 12 15 6"/>
               </svg>
             </button>
-            <span className={`vp-status-badge vp-status-${sc.cls}`}>
-              {sc.icon} {sc.label}
-            </span>
+
+            {/* Grupo direito: status + botão baixar PDF */}
+            <div className="vp-header-top-right">
+              <span className={`vp-status-badge vp-status-${sc.cls}`}>
+                {sc.icon} {sc.label}
+              </span>
+
+              {/* Botão "Baixar PDF" — aciona o react-to-print */}
+              <button
+                className="vp-pdf-btn"
+                onClick={handlePrint}
+                aria-label="Baixar protocolo em PDF"
+                title="Baixar PDF"
+              >
+                {/* Ícone de download */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="2.5"
+                     strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Baixar PDF
+              </button>
+            </div>
           </div>
 
           {/* Informações do paciente */}
@@ -519,9 +561,452 @@ export default function VisualizarProtocolo({ paciente, protocolo, onBack }) {
           </div>
         )}
       </main>
+
+      {/* ── Área oculta para impressão / exportação em PDF ─────────
+           Esta div só é visível durante o processo de impressão.
+           Contém TODAS as informações do protocolo em layout
+           linear, sem abas, para que o PDF fique sempre completo. */}
+      <div style={{ display: 'none' }}>
+        <PrintableContent
+          ref={printRef}
+          paciente={paciente}
+          protocolo={protocolo}
+          sc={sc}
+          etapas={etapas}
+          concluidas={concluidas}
+          progressoPct={progressoPct}
+          medicamentos={medicamentos}
+          observacoes={observacoes}
+          localRealizacao={localRealizacao}
+          medicoResponsavel={medicoResponsavel}
+          dataRealizacao={dataRealizacao}
+          formatDate={formatDate}
+        />
+      </div>
+
     </div>
   );
 }
+
+// ────────────────────────────────────────────────────────────────
+// PrintableContent — layout exclusivo para o PDF
+
+const PrintableContent = forwardRef(function PrintableContent(
+  {
+    paciente, protocolo, sc,
+    etapas, concluidas, progressoPct,
+    medicamentos, observacoes,
+    localRealizacao, medicoResponsavel, dataRealizacao,
+    formatDate,
+  },
+  ref
+) {
+  return (
+    <div ref={ref} className="pdf-wrapper">
+
+      {/* ── Estilos inline para impressão ───────────────────── */}
+      {/* Garante formatação mesmo sem acesso ao CSS do app     */}
+      <style>{`
+        .pdf-wrapper {
+          font-family: 'Inter', Arial, sans-serif;
+          font-size: 12px;
+          color: #1A202C;
+          padding: 0;
+          max-width: 100%;
+        }
+        /* Cabeçalho colorido */
+        .pdf-header {
+          background: linear-gradient(135deg, #0C326F 0%, #1351B4 100%);
+          color: white;
+          padding: 20px 24px;
+          border-radius: 8px 8px 0 0;
+          margin-bottom: 20px;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .pdf-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 12px;
+        }
+        .pdf-title { font-size: 18px; font-weight: 800; margin: 0 0 4px; }
+        .pdf-subtitle { font-size: 12px; opacity: 0.8; margin: 0; }
+        .pdf-badge {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: 1.5px solid rgba(255,255,255,0.5);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+        }
+        /* Linha de metadados (local, médico, data) */
+        .pdf-meta-row {
+          display: flex;
+          gap: 24px;
+          flex-wrap: wrap;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid rgba(255,255,255,0.25);
+        }
+        .pdf-meta-item {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .pdf-meta-label {
+          font-size: 9px;
+          opacity: 0.65;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+        .pdf-meta-value { font-size: 11px; font-weight: 600; }
+        /* Paciente */
+        .pdf-patient-row {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          background: #F0F4F7;
+          border-radius: 8px;
+          padding: 12px 16px;
+          margin-bottom: 16px;
+        }
+        .pdf-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #1351B4;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+        .pdf-patient-name { font-size: 14px; font-weight: 700; margin: 0 0 3px; }
+        .pdf-patient-detail { font-size: 11px; color: #4A5568; margin: 0; }
+        /* Seções */
+        .pdf-section {
+          margin-bottom: 16px;
+          border: 1px solid #E2E8F0;
+          border-radius: 8px;
+          overflow: hidden;
+          page-break-inside: avoid;
+        }
+        .pdf-section-title {
+          background: #F0F6FF;
+          color: #0C326F;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          padding: 8px 14px;
+          border-bottom: 1px solid #D4E5FF;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .pdf-section-body { padding: 12px 14px; }
+        /* Grid de informações 2 colunas */
+        .pdf-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px 20px;
+        }
+        .pdf-field { display: flex; flex-direction: column; gap: 2px; }
+        .pdf-field-full { grid-column: 1 / -1; }
+        .pdf-field-label {
+          font-size: 9px;
+          color: #718096;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          font-weight: 600;
+        }
+        .pdf-field-value { font-size: 11px; font-weight: 500; color: #1A202C; }
+        .pdf-field-value-highlight { font-size: 12px; font-weight: 700; color: #1351B4; }
+        /* Barra de progresso */
+        .pdf-progress-bg {
+          height: 6px;
+          background: #E2E8F0;
+          border-radius: 999px;
+          overflow: hidden;
+          margin: 6px 0 4px;
+        }
+        .pdf-progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #00884A, #10B981);
+          border-radius: 999px;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .pdf-progress-label { font-size: 10px; color: #718096; }
+        /* Medicamentos */
+        .pdf-med-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 10px;
+          background: #F0F6FF;
+          border-radius: 6px;
+          border-left: 3px solid #2670E8;
+          margin-bottom: 6px;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .pdf-med-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #1351B4;
+          flex-shrink: 0;
+        }
+        .pdf-med-name { font-size: 11px; font-weight: 600; flex: 1; }
+        .pdf-med-freq {
+          font-size: 10px;
+          font-weight: 600;
+          color: #1351B4;
+          background: #D4E5FF;
+          padding: 2px 7px;
+          border-radius: 999px;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        /* Linha do tempo */
+        .pdf-tl-item {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+          margin-bottom: 10px;
+        }
+        .pdf-tl-dot {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          font-size: 10px;
+          font-weight: 700;
+          color: white;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .pdf-tl-dot-concluido { background: #10B981; }
+        .pdf-tl-dot-andamento { background: #8B5CF6; }
+        .pdf-tl-dot-pendente  { background: #CBD5E0; }
+        .pdf-tl-body { flex: 1; }
+        .pdf-tl-name { font-size: 11px; font-weight: 700; }
+        .pdf-tl-date { font-size: 10px; color: #718096; }
+        .pdf-tl-desc { font-size: 10px; color: #4A5568; margin-top: 2px; }
+        /* Observações */
+        .pdf-obs-item {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 10px;
+          padding: 8px 10px;
+          border-radius: 6px;
+          border-left: 3px solid;
+          page-break-inside: avoid;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .pdf-obs-alerta  { background: #FFF8F0; border-left-color: #F59E0B; }
+        .pdf-obs-sucesso { background: #F0FDF4; border-left-color: #10B981; }
+        .pdf-obs-info    { background: #F0F6FF; border-left-color: #2670E8; }
+        .pdf-obs-titulo  { font-size: 11px; font-weight: 700; margin-bottom: 3px; }
+        .pdf-obs-texto   { font-size: 10px; color: #4A5568; line-height: 1.5; }
+        .pdf-obs-autor   { font-size: 9px; color: #718096; margin-top: 3px; }
+        /* Rodapé */
+        .pdf-footer {
+          text-align: center;
+          font-size: 9px;
+          color: #A0AEC0;
+          margin-top: 20px;
+          padding-top: 10px;
+          border-top: 1px solid #E2E8F0;
+        }
+      `}</style>
+
+      {/* ── 1. Cabeçalho do protocolo ───────────────────────── */}
+      <div className="pdf-header">
+        <div className="pdf-header-row">
+          <div>
+            <h1 className="pdf-title">
+              {protocolo?.especialidade || 'Protocolo Médico'}
+            </h1>
+            <p className="pdf-subtitle">
+              {protocolo?.descricao || 'Protocolo de acompanhamento clínico'}
+            </p>
+          </div>
+          <span className="pdf-badge">{sc.icon} {sc.label}</span>
+        </div>
+
+        {/* Local, médico e data em linha */}
+        <div className="pdf-meta-row">
+          <div className="pdf-meta-item">
+            <span className="pdf-meta-label">📍 Local</span>
+            <span className="pdf-meta-value">{localRealizacao}</span>
+          </div>
+          <div className="pdf-meta-item">
+            <span className="pdf-meta-label">👤 Médico Responsável</span>
+            <span className="pdf-meta-value">{medicoResponsavel}</span>
+          </div>
+          <div className="pdf-meta-item">
+            <span className="pdf-meta-label">📅 Data de Realização</span>
+            <span className="pdf-meta-value">{formatDate(dataRealizacao)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. Dados do paciente ─────────────────────────────── */}
+      <div className="pdf-patient-row">
+        <div className="pdf-avatar">
+          {paciente?.nome?.charAt(0)?.toUpperCase() || 'P'}
+        </div>
+        <div>
+          <p className="pdf-patient-name">{paciente?.nome || 'Paciente'}</p>
+          <p className="pdf-patient-detail">CNS: {paciente?.cartao_sus || '—'}</p>
+          <p className="pdf-patient-detail">UBS: {paciente?.unidade || 'UBS Central'}</p>
+        </div>
+      </div>
+
+      {/* ── 3. Informações gerais do protocolo ──────────────── */}
+      <div className="pdf-section">
+        <div className="pdf-section-title">Informações do Protocolo</div>
+        <div className="pdf-section-body">
+          <div className="pdf-grid">
+            <div className="pdf-field">
+              <span className="pdf-field-label">Especialidade</span>
+              <span className="pdf-field-value">
+                {protocolo?.especialidade || 'Não informada'}
+              </span>
+            </div>
+            <div className="pdf-field">
+              <span className="pdf-field-label">Indicação Clínica</span>
+              <span className="pdf-field-value">
+                {protocolo?.indicacao || protocolo?.descricao || 'Não informada'}
+              </span>
+            </div>
+            <div className="pdf-field">
+              <span className="pdf-field-label">Data do Pedido</span>
+              <span className="pdf-field-value">{formatDate(protocolo?.data_pedido)}</span>
+            </div>
+            <div className="pdf-field">
+              <span className="pdf-field-label">Data da Resposta</span>
+              <span className="pdf-field-value">{formatDate(protocolo?.data_resposta)}</span>
+            </div>
+            <div className="pdf-field">
+              <span className="pdf-field-label">Local de Realização</span>
+              <span className="pdf-field-value">{localRealizacao}</span>
+            </div>
+            <div className="pdf-field">
+              <span className="pdf-field-label">Data de Realização</span>
+              <span className="pdf-field-value">{formatDate(dataRealizacao)}</span>
+            </div>
+            <div className="pdf-field pdf-field-full">
+              <span className="pdf-field-label">Dr(a). Responsável pelo Protocolo</span>
+              <span className="pdf-field-value pdf-field-value-highlight">
+                {medicoResponsavel}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 4. Progresso das etapas ─────────────────────────── */}
+      <div className="pdf-section">
+        <div className="pdf-section-title">Progresso das Etapas</div>
+        <div className="pdf-section-body">
+          <div className="pdf-progress-bg">
+            <div className="pdf-progress-fill" style={{ width: `${progressoPct}%` }} />
+          </div>
+          <p className="pdf-progress-label">
+            {concluidas} de {etapas.length} etapas concluídas ({progressoPct}%)
+          </p>
+        </div>
+      </div>
+
+      {/* ── 5. Medicamentos / Procedimentos ─────────────────── */}
+      {medicamentos.length > 0 && (
+        <div className="pdf-section">
+          <div className="pdf-section-title">Medicamentos / Procedimentos</div>
+          <div className="pdf-section-body">
+            {medicamentos.map((med, i) => (
+              <div key={i} className="pdf-med-item">
+                <div className="pdf-med-dot" />
+                <span className="pdf-med-name">
+                  {med.nome}{med.dosagem ? ` — ${med.dosagem}` : ''}
+                </span>
+                {med.frequencia && (
+                  <span className="pdf-med-freq">{med.frequencia}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 6. Linha do tempo das etapas ────────────────────── */}
+      <div className="pdf-section">
+        <div className="pdf-section-title">Linha do Tempo</div>
+        <div className="pdf-section-body">
+          {etapas.map((etapa, i) => (
+            <div key={i} className="pdf-tl-item">
+              <div className={`pdf-tl-dot pdf-tl-dot-${etapa.status}`}>
+                {etapa.status === 'concluido' && '✓'}
+                {etapa.status === 'andamento' && '▶'}
+                {etapa.status === 'pendente'  && '○'}
+              </div>
+              <div className="pdf-tl-body">
+                <div className="pdf-tl-name">{etapa.nome}</div>
+                {etapa.data && (
+                  <div className="pdf-tl-date">{formatDate(etapa.data)}</div>
+                )}
+                {etapa.descricao && (
+                  <div className="pdf-tl-desc">{etapa.descricao}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── 7. Observações clínicas ──────────────────────────── */}
+      {observacoes.length > 0 && (
+        <div className="pdf-section">
+          <div className="pdf-section-title">Observações Clínicas</div>
+          <div className="pdf-section-body">
+            {observacoes.map((obs, i) => (
+              <div key={i} className={`pdf-obs-item pdf-obs-${obs.tipo || 'info'}`}>
+                <div>
+                  {obs.titulo && <p className="pdf-obs-titulo">{obs.titulo}</p>}
+                  <p className="pdf-obs-texto">{obs.texto}</p>
+                  {obs.data && (
+                    <p className="pdf-obs-autor">
+                      {formatDate(obs.data)}{obs.autor ? ` · ${obs.autor}` : ''}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 8. Rodapé ────────────────────────────────────────── */}
+      <div className="pdf-footer">
+        Documento gerado em {new Date().toLocaleDateString('pt-BR', {
+          day: '2-digit', month: 'long', year: 'numeric',
+          hour: '2-digit', minute: '2-digit',
+        })} · Saúde na Mão — Sistema de Gestão de Saúde
+      </div>
+
+    </div>
+  );
+});
 
 // ────────────────────────────────────────────────────────────────
 // mockProtocolo — objeto JSON com as três novas informações.
