@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Agendamento from './components/Agendamento';
 import Protocolos from './components/Protocolos';
+import VisualizarProtocolo from './components/VisualizarProtocolo';
 import UnidadesSaude from './components/UnidadesSaude';
 import Perfil from './components/Perfil';
 
@@ -11,6 +12,8 @@ function App() {
   const [page, setPage] = useState('login');
   const [paciente, setPaciente] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Protocolo selecionado para visualização detalhada
+  const [selectedProtocol, setSelectedProtocol] = useState(null);
 
   const handleLogin = (dadosPaciente) => {
     setPaciente(dadosPaciente);
@@ -56,6 +59,18 @@ function App() {
         <Protocolos
           paciente={paciente}
           onBack={() => handleNavigate('dashboard')}
+          onViewProtocol={(proto) => {
+            setSelectedProtocol(proto);
+            handleNavigate('visualizar-protocolo');
+          }}
+        />
+      )}
+
+      {page === 'visualizar-protocolo' && paciente && selectedProtocol && (
+        <VisualizarProtocolo
+          paciente={paciente}
+          protocolo={selectedProtocol}
+          onBack={() => handleNavigate('protocolos')}
         />
       )}
 

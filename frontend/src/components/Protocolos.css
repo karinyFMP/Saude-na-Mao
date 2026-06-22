@@ -260,6 +260,27 @@
   background: var(--status-cancelled);
 }
 
+/* Ver detalhes button */
+.proto-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-lightest);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.proto-view-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
 @media (min-width: 768px) {
   .proto-list {
     display: grid;
