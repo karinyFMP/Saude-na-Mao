@@ -240,6 +240,30 @@ app.get('/api/protocolos/:pacienteId', async (req, res) => {
   res.json(protocolos || []);
 });
 
+// GET /api/protocolo/:id — Obtém os detalhes completos de um protocolo para o paciente
+app.get('/api/protocolo/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const protocolo = await getAsync(
+    `SELECT
+      p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at,
+      p.tipo_protocolo, p.prioridade, p.parecer_medico,
+      pac.id as paciente_id, pac.nome as paciente_nome, pac.cpf as paciente_cpf, pac.unidade as paciente_unidade, pac.data_nascimento, pac.cartao_sus, pac.telefone,
+      m.nome as medico_solicitante_nome, m.especialidade as medico_solicitante_especialidade, m.crm as medico_solicitante_crm
+     FROM protocolos p
+     INNER JOIN pacientes pac ON p.paciente_id = pac.id
+     LEFT JOIN medicos m ON p.medico_id = m.id
+     WHERE p.id = ?`,
+    [id]
+  );
+
+  if (!protocolo) {
+    return res.status(404).json({ error: 'Protocolo não encontrado.' });
+  }
+
+  res.json(protocolo);
+});
+
 // ============================================================
 // ROTAS DO SERVIDOR (ADMINISTRAÇÃO) — Isoladas e protegidas
 // ============================================================

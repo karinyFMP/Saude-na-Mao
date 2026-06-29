@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getProtocolos } from '../services/api';
 import './Protocolos.css';
 
 export default function Protocolos({ paciente, onBack }) {
+  const navigate = useNavigate();
   const [protocolos, setProtocolos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
@@ -115,7 +117,6 @@ export default function Protocolos({ paciente, onBack }) {
                 <div className="proto-card-header">
                   <div>
                     <h3 className="proto-card-title">{proto.especialidade}</h3>
-                    <p className="proto-card-desc">{proto.descricao}</p>
                   </div>
                   <span className={`proto-status proto-status-${getStatusClass(proto.status)}`}>
                     {getStatusIcon(proto.status)} {proto.status}
@@ -145,6 +146,22 @@ export default function Protocolos({ paciente, onBack }) {
                 {/* Progress bar for visual feedback */}
                 <div className="proto-progress">
                   <div className={`proto-progress-bar proto-progress-${getStatusClass(proto.status)}`} />
+                </div>
+                
+                {/* Ações */}
+                <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button 
+                    onClick={() => navigate(`/protocolo/${proto.id}`)}
+                    style={{
+                      background: 'none', border: 'none', color: 'var(--primary)', 
+                      fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer'
+                    }}
+                  >
+                    Visualizar Protocolo
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
                 </div>
               </div>
             ))}

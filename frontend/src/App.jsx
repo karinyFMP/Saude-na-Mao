@@ -11,6 +11,7 @@ import Agendamento from './components/Agendamento';
 import Protocolos from './components/Protocolos';
 import UnidadesSaude from './components/UnidadesSaude';
 import Perfil from './components/Perfil';
+import PacienteProtocoloDetails from './components/PacienteProtocoloDetails';
 import AuditorLogin from './components/auditor/AuditorLogin';
 import AuditorDashboard from './components/auditor/AuditorDashboard';
 import AuditorProtocoloDetails from './components/auditor/AuditorProtocoloDetails';
@@ -103,6 +104,14 @@ function App() {
                 paciente={user} 
                 onBack={() => handleNavigate('dashboard')} 
               />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/protocolo/:id" 
+          element={
+            <PrivateRoute>
+              <PacienteProtocoloDetails />
             </PrivateRoute>
           } 
         />

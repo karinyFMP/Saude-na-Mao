@@ -73,6 +73,11 @@ export async function getProtocolos(pacienteId) {
   return response.data;
 }
 
+export async function getProtocoloDetalhesPaciente(id) {
+  const response = await api.get(`/protocolo/${id}`);
+  return response.data;
+}
+
 export async function updatePaciente(pacienteId, dados) {
   const response = await api.put(`/pacientes/${pacienteId}`, dados);
   return response.data;
