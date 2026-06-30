@@ -63,6 +63,13 @@ export async function getEspecialidades() {
   return response.data;
 }
 
+export async function getHorariosOcupados(medico, data) {
+  const response = await api.get('/horarios-ocupados', {
+    params: { medico, data }
+  });
+  return response.data;
+}
+
 export async function cancelarConsulta(id) {
   const response = await api.delete(`/consultas/${id}`);
   return response.data;

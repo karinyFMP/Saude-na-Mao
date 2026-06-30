@@ -242,7 +242,7 @@ describe('🗓️ Agendamento de Consultas', () => {
     expect(res.body.consulta).toHaveProperty('status', 'Pendente');
   });
 
-  it('TC-20 | Deve BLOQUEAR agendamento duplicado no mesmo horário (status 409)', async () => {
+  it('TC-20 | Deve BLOQUEAR agendamento duplicado do mesmo paciente no mesmo horário (status 409)', async () => {
     const res = await request(app)
       .post('/api/agendar')
       .send({
@@ -254,7 +254,31 @@ describe('🗓️ Agendamento de Consultas', () => {
         unidade: 'UBS Norte',
       });
     expect(res.status).toBe(409);
-    expect(res.body.error).toContain('Já existe uma consulta');
+    expect(res.body.error).toContain('Você já tem uma consulta agendada');
+  });
+
+  it('TC-20b | Deve BLOQUEAR quando o MÉDICO já está ocupado nesse horário, mesmo com outro paciente (status 409)', async () => {
+    const res = await request(app)
+      .post('/api/agendar')
+      .send({
+        paciente_id: 2, // Paciente diferente do TC-19
+        medico: 'Dr. Teste Automação', // Mesmo médico do TC-19
+        especialidade: 'Clínico Geral',
+        data: '2027-01-15', // Mesmo dia
+        horario: '10:00', // Mesmo horário
+        unidade: 'UBS Central',
+      });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toContain('reservado por outro paciente');
+  });
+
+  it('TC-20c | GET /api/horarios-ocupados deve retornar os horários já reservados do médico', async () => {
+    const res = await request(app)
+      .get('/api/horarios-ocupados')
+      .query({ medico: 'Dr. Teste Automação', data: '2027-01-15' });
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toContain('10:00');
   });
 
   it('TC-21 | Deve REJEITAR agendamento sem campo obrigatório `medico`', async () => {

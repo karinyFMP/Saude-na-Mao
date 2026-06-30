@@ -77,6 +77,15 @@ async function initializeDatabase() {
     )
   `);
 
+  // Garante, a nível de banco, que um mesmo médico nunca fique com
+  // duas consultas ativas no mesmo dia/horário — mesmo em caso de
+  // duas requisições simultâneas (condição de corrida).
+  await runAsync(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_medico_horario_unico
+    ON consultas (medico, data, horario)
+    WHERE status != 'Cancelada'
+  `);
+
   await runAsync(`
     CREATE TABLE IF NOT EXISTS protocolos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

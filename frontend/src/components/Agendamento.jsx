@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 import { Loader2, Calendar, Clock, MapPin, Stethoscope, ChevronLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 
-import { getMedicos, getUBS, agendarConsulta } from '../services/api';
+import { getMedicos, getUBS, getHorariosOcupados, agendarConsulta } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import { agendamentoSchema } from '../schemas/agendamentoSchema';
 import './Agendamento.css';
@@ -16,6 +16,8 @@ export default function Agendamento() {
 
   const [medicos, setMedicos] = useState([]);
   const [unidades, setUnidades] = useState([]);
+  const [horariosOcupados, setHorariosOcupados] = useState([]);
+  const [loadingHorarios, setLoadingHorarios] = useState(false);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
 
@@ -28,7 +30,6 @@ export default function Agendamento() {
   } = useForm({
     resolver: zodResolver(agendamentoSchema),
     defaultValues: {
-      especialidade: 'Clínico Geral',
       medico: '',
       unidade: '',
       data: '',
@@ -37,7 +38,8 @@ export default function Agendamento() {
   });
 
   const selectedUnidade = watch('unidade');
-  const selectedEspecialidade = watch('especialidade');
+  const selectedMedico = watch('medico');
+  const selectedData = watch('data');
 
   useEffect(() => {
     const loadData = async () => {
@@ -45,7 +47,7 @@ export default function Agendamento() {
         const ubs = await getUBS();
         setUnidades(ubs);
       } catch (err) {
-        toast.error('Erro ao carregar unidades de saúde.');
+        toast.error('Erro ao carregar dados do formulário.');
       } finally {
         setLoading(false);
       }
@@ -54,8 +56,8 @@ export default function Agendamento() {
   }, []);
 
   useEffect(() => {
-    if (selectedEspecialidade && selectedUnidade) {
-      getMedicos(selectedEspecialidade, selectedUnidade)
+    if (selectedUnidade) {
+      getMedicos(undefined, selectedUnidade)
         .then(setMedicos)
         .catch(() => setMedicos([]));
       setValue('medico', ''); // Resetar médico ao mudar unidade
@@ -63,16 +65,38 @@ export default function Agendamento() {
       setMedicos([]);
       setValue('medico', '');
     }
-  }, [selectedEspecialidade, selectedUnidade, setValue]);
+  }, [selectedUnidade, setValue]);
+
+  useEffect(() => {
+    if (selectedMedico && selectedData) {
+      setLoadingHorarios(true);
+      getHorariosOcupados(selectedMedico, selectedData)
+        .then((ocupados) => {
+          setHorariosOcupados(ocupados);
+          // Se o horário já escolhido acabou de ficar indisponível, limpa a seleção
+          const horarioAtual = watch('horario');
+          if (horarioAtual && ocupados.includes(horarioAtual)) {
+            setValue('horario', '');
+            toast.warning('O horário selecionado ficou indisponível. Escolha outro.');
+          }
+        })
+        .catch(() => setHorariosOcupados([]))
+        .finally(() => setLoadingHorarios(false));
+    } else {
+      setHorariosOcupados([]);
+    }
+  }, [selectedMedico, selectedData]);
 
   const onSubmit = async (data) => {
     if (!user) return;
+
+    const medicoSelecionado = medicos.find((m) => m.nome === data.medico);
 
     try {
       await agendarConsulta({
         paciente_id: user.id,
         medico: data.medico,
-        especialidade: data.especialidade,
+        especialidade: medicoSelecionado?.especialidade || 'Clínico Geral',
         data: data.data,
         horario: data.horario,
         unidade: data.unidade || 'UBS Central',
@@ -82,16 +106,24 @@ export default function Agendamento() {
         navigate('/dashboard');
       }, 2000);
     } catch (err) {
-      // O interceptor do axios exibe o erro
+      // Se o conflito foi por horário já ocupado, atualiza a lista na hora
+      if (err?.response?.status === 409 && data.medico && data.data) {
+        getHorariosOcupados(data.medico, data.data)
+          .then(setHorariosOcupados)
+          .catch(() => {});
+        setValue('horario', '');
+      }
+      // O interceptor do axios já exibe a mensagem de erro
     }
   };
 
-  // Generate available time slots
+  // Generate available time slots, removendo os já ocupados pelo médico selecionado
   const timeSlots = [];
   for (let h = 7; h <= 17; h++) {
     timeSlots.push(`${String(h).padStart(2, '0')}:00`);
     if (h < 17) timeSlots.push(`${String(h).padStart(2, '0')}:30`);
   }
+  const horariosDisponiveis = timeSlots.filter((t) => !horariosOcupados.includes(t));
 
   // Min date is tomorrow
   const tomorrow = new Date();
@@ -137,7 +169,7 @@ export default function Agendamento() {
         <form className="agend-form" onSubmit={handleSubmit(onSubmit)}>
           {/* Info card */}
           <div className="agend-info-card">
-            <p>Selecione a Unidade de Saúde, médico, data e horário para sua consulta de Clínico Geral.</p>
+            <p>Selecione a Unidade de Saúde, o médico, a data e o horário para sua consulta.</p>
           </div>
 
           {/* Unidade */}
@@ -166,11 +198,13 @@ export default function Agendamento() {
               <Stethoscope size={18} className="agend-input-icon" />
               <select id="medico" {...register('medico')} disabled={!selectedUnidade}>
                 <option value="">
-                  {selectedUnidade ? 'Selecione o médico Clínico Geral' : 'Selecione uma Unidade de Saúde primeiro'}
+                  {!selectedUnidade
+                    ? 'Selecione uma Unidade de Saúde primeiro'
+                    : 'Selecione o médico(a)'}
                 </option>
                 {medicos.map((med) => (
                   <option key={med.id} value={med.nome}>
-                    {med.nome} — {med.unidade_nome}
+                    {med.nome} — {med.especialidade}
                   </option>
                 ))}
               </select>
@@ -202,13 +236,28 @@ export default function Agendamento() {
               </label>
               <div className={`agend-input-wrapper ${errors.horario ? 'error' : ''}`}>
                 <Clock size={18} className="agend-input-icon" />
-                <select id="horario" {...register('horario')}>
-                  <option value="">Selecione</option>
-                  {timeSlots.map((t) => (
+                <select
+                  id="horario"
+                  {...register('horario')}
+                  disabled={!selectedMedico || !selectedData || loadingHorarios}
+                >
+                  <option value="">
+                    {!selectedMedico || !selectedData
+                      ? 'Selecione médico e data primeiro'
+                      : loadingHorarios
+                      ? 'Carregando horários...'
+                      : horariosDisponiveis.length === 0
+                      ? 'Nenhum horário disponível'
+                      : 'Selecione'}
+                  </option>
+                  {horariosDisponiveis.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
               </div>
+              {selectedMedico && selectedData && !loadingHorarios && horariosOcupados.length > 0 && (
+                <span className="agend-hint">{horariosOcupados.length} horário(s) já reservado(s) nesse dia.</span>
+              )}
               {errors.horario && <span className="field-error"><AlertCircle size={14} /> {errors.horario.message}</span>}
             </div>
           </div>

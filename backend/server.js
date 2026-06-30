@@ -142,20 +142,39 @@ app.get('/api/dashboard/:pacienteId', async (req, res) => {
 app.post('/api/agendar', validateSchema(agendamentoSchema), async (req, res) => {
   const { paciente_id, medico, especialidade, data, horario, unidade } = req.body;
 
-  const existing = await getAsync(
+  // Impede que o MESMO paciente marque duas consultas no mesmo dia/horário
+  const pacienteOcupado = await getAsync(
     `SELECT id FROM consultas WHERE paciente_id = ? AND data = ? AND horario = ? AND status != 'Cancelada'`,
     [paciente_id, data, horario]
   );
 
-  if (existing) {
-    return res.status(409).json({ error: 'Já existe uma consulta agendada para este horário.' });
+  if (pacienteOcupado) {
+    return res.status(409).json({ error: 'Você já tem uma consulta agendada para este horário.' });
   }
 
-  const result = await runAsync(
-    `INSERT INTO consultas (paciente_id, medico, especialidade, data, horario, unidade, status)
-     VALUES (?, ?, ?, ?, ?, ?, 'Pendente')`,
-    [paciente_id, medico, especialidade, data, horario, unidade || 'UBS Central']
+  // Impede que o MÉDICO fique com dois pacientes no mesmo dia/horário
+  const medicoOcupado = await getAsync(
+    `SELECT id FROM consultas WHERE medico = ? AND data = ? AND horario = ? AND status != 'Cancelada'`,
+    [medico, data, horario]
   );
+
+  if (medicoOcupado) {
+    return res.status(409).json({ error: 'Este horário acabou de ser reservado por outro paciente. Escolha outro horário.' });
+  }
+
+  let result;
+  try {
+    result = await runAsync(
+      `INSERT INTO consultas (paciente_id, medico, especialidade, data, horario, unidade, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'Pendente')`,
+      [paciente_id, medico, especialidade, data, horario, unidade || 'UBS Central']
+    );
+  } catch (err) {
+    if (err.message && err.message.includes('UNIQUE constraint failed')) {
+      return res.status(409).json({ error: 'Este horário acabou de ser reservado por outro paciente. Escolha outro horário.' });
+    }
+    throw err;
+  }
 
   const consulta = await getAsync('SELECT * FROM consultas WHERE id = ?', [result.lastID]);
 
@@ -163,6 +182,22 @@ app.post('/api/agendar', validateSchema(agendamentoSchema), async (req, res) => 
     message: 'Consulta agendada com sucesso!',
     consulta
   });
+});
+
+// GET /api/horarios-ocupados — Retorna os horários já reservados para um médico em uma data
+app.get('/api/horarios-ocupados', async (req, res) => {
+  const { medico, data } = req.query;
+
+  if (!medico || !data) {
+    return res.status(400).json({ error: 'Informe médico e data.' });
+  }
+
+  const rows = await allAsync(
+    `SELECT horario FROM consultas WHERE medico = ? AND data = ? AND status != 'Cancelada'`,
+    [medico, data]
+  );
+
+  res.json(rows.map((r) => r.horario));
 });
 
 // DELETE /api/consultas/:id — Cancelar consulta
