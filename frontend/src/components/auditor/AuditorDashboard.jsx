@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, LogOut, RefreshCw, Search, Filter,
@@ -11,22 +11,24 @@ import { getAuditorProtocolos } from '../../services/auditorApi';
 import './AuditorDashboard.css';
 
 // --- Helpers ---
-const STATUS_OPTIONS = ['Em análise', 'Aprovado', 'Negado', 'Concluído'];
+const STATUS_OPTIONS = ['Em análise', 'Autorizado', 'Executado', 'Negado', 'Concluído'];
 const FILTER_STATUS = ['Todos', ...STATUS_OPTIONS];
 
 const STATUS_META = {
   'Em análise': { cls: 'em-analise', icon: <Clock size={11} /> },
-  'Aprovado':   { cls: 'aprovado',   icon: <CheckCircle2 size={11} /> },
-  'Negado':     { cls: 'negado',     icon: <XCircle size={11} /> },
-  'Concluído':  { cls: 'concluido',  icon: <CheckCheck size={11} /> },
+  'Autorizado':  { cls: 'autorizado', icon: <CheckCircle2 size={11} /> },
+  'Executado':   { cls: 'executado',  icon: <CheckCheck size={11} /> },
+  'Negado':      { cls: 'negado',     icon: <XCircle size={11} /> },
+  'Concluído':   { cls: 'concluido',  icon: <CheckCheck size={11} /> },
 };
 
 const STAT_ICONS = {
-  total:      { icon: <LayoutDashboard size={20} />, bgClass: 'bg-blue' },
-  emAnalise:  { icon: <Clock size={20} />,           bgClass: 'bg-purple' },
-  aprovados:  { icon: <CheckCircle2 size={20} />,    bgClass: 'bg-green' },
-  negados:    { icon: <XCircle size={20} />,         bgClass: 'bg-red' },
-  concluidos: { icon: <CheckCheck size={20} />,      bgClass: 'bg-teal' },
+  total:        { icon: <LayoutDashboard size={20} />, color: 'blue' },
+  emAnalise:    { icon: <Clock size={20} />,           color: 'purple' },
+  autorizados:  { icon: <CheckCircle2 size={20} />,    color: 'green' },
+  executados:   { icon: <CheckCheck size={20} />,      color: 'teal' },
+  negados:      { icon: <XCircle size={20} />,         color: 'red' },
+  concluidos:   { icon: <CheckCheck size={20} />,      color: 'blue' },
 };
 
 function formatDate(dateStr) {
@@ -88,19 +90,21 @@ export default function AuditorDashboard() {
   };
 
   const stats = {
-    total:      protocolos.length,
-    emAnalise:  protocolos.filter(p => p.status === 'Em análise').length,
-    aprovados:  protocolos.filter(p => p.status === 'Aprovado').length,
-    negados:    protocolos.filter(p => p.status === 'Negado').length,
-    concluidos: protocolos.filter(p => p.status === 'Concluído').length,
+    total:       protocolos.length,
+    emAnalise:   protocolos.filter(p => p.status === 'Em análise').length,
+    autorizados: protocolos.filter(p => p.status === 'Autorizado').length,
+    executados:  protocolos.filter(p => p.status === 'Executado').length,
+    negados:     protocolos.filter(p => p.status === 'Negado').length,
+    concluidos:  protocolos.filter(p => p.status === 'Concluído').length,
   };
 
   const STAT_CARDS = [
-    { key: 'total',      label: 'Total',       value: stats.total,      sub: 'protocolos' },
-    { key: 'emAnalise',  label: 'Em Análise',  value: stats.emAnalise,  sub: 'pendentes' },
-    { key: 'aprovados',  label: 'Aprovados',   value: stats.aprovados,  sub: 'deferidos' },
-    { key: 'negados',    label: 'Negados',     value: stats.negados,    sub: 'indeferidos' },
-    { key: 'concluidos', label: 'Concluídos',  value: stats.concluidos, sub: 'finalizados' },
+    { key: 'total',       label: 'Total',        value: stats.total,       sub: 'protocolos' },
+    { key: 'emAnalise',   label: 'Em Análise',   value: stats.emAnalise,   sub: 'pendentes' },
+    { key: 'autorizados', label: 'Autorizados',   value: stats.autorizados, sub: 'deferidos' },
+    { key: 'executados',  label: 'Executados',    value: stats.executados,  sub: 'realizados' },
+    { key: 'negados',     label: 'Negados',       value: stats.negados,     sub: 'indeferidos' },
+    { key: 'concluidos',  label: 'Concluídos',    value: stats.concluidos,  sub: 'finalizados' },
   ];
 
   return (
@@ -134,8 +138,6 @@ export default function AuditorDashboard() {
             <p className="dash-patient-bar-greeting">Olá, <strong>{servidor?.nome?.split(' ')[0] || 'Servidor'}</strong></p>
             <div className="dash-patient-bar-details">
               <span>Cargo: {servidor?.cargo || 'Auditor'}</span>
-              <span className="dot-separator">â€¢</span>
-              <span>Acesso Restrito</span>
             </div>
           </div>
           <button className="dash-logout-mini" onClick={handleLogout} aria-label="Sair">
@@ -147,24 +149,22 @@ export default function AuditorDashboard() {
       {/* Main */}
       <main className="auditor-main">
 
-        {/* Stats (Using same structure as Patient's Services Grid, but 5 in a row) */}
-        <section className="dash-section dash-services-section">
-          <div className="dash-services-dense-grid auditor-stats-grid">
-            {STAT_CARDS.map(s => (
-              <div key={s.key} className="dash-service-card-new" style={{ cursor: 'default' }}>
-                <div className={`service-card-icon ${STAT_ICONS[s.key].bgClass}`}>
-                  {STAT_ICONS[s.key].icon}
+        {/* Stats */}
+        <section className="auditor-stats-grid-new" aria-label="Resumo de protocolos">
+          {STAT_CARDS.map(s => {
+            const statMeta = STAT_ICONS[s.key];
+            return (
+              <div key={s.key} className={`auditor-stat-card auditor-stat-card--${statMeta.color}`}>
+                <div className="auditor-stat-icon">
+                  {statMeta.icon}
                 </div>
-                <div className="service-card-info">
-                  <h4>{s.label}</h4>
-                  <p style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary-dark)', margin: '4px 0 0 0' }}>
-                    {loading ? '—' : s.value}
-                  </p>
-                  <p style={{ fontSize: '0.7rem', opacity: 0.7 }}>{s.sub}</p>
+                <div className="auditor-stat-info">
+                  <span className="auditor-stat-value">{loading ? '—' : s.value}</span>
+                  <span className="auditor-stat-label">{s.label}</span>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </section>
 
         {/* Section */}

@@ -495,12 +495,12 @@ app.put('/api/auditor/protocolos/:id', verificarAdmin, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const statusPermitidos = ['Em análise', 'Aprovado', 'Negado', 'Concluído'];
+  const statusPermitidos = ['Em análise', 'Autorizado', 'Executado', 'Negado', 'Concluído'];
   if (!status || !statusPermitidos.includes(status)) {
     return res.status(400).json({ error: `Status inválido. Use: ${statusPermitidos.join(', ')}` });
   }
 
-  const dataResposta = (status === 'Aprovado' || status === 'Negado' || status === 'Concluído')
+  const dataResposta = (['Autorizado', 'Executado', 'Negado', 'Concluído'].includes(status))
     ? new Date().toISOString().split('T')[0]
     : null;
 

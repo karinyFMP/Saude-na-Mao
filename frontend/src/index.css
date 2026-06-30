@@ -39,19 +39,29 @@
   --text-white: #FFFFFF;
   --text-on-primary: #FFFFFF;
 
-  /* Status Colors */
-  --status-confirmed: #10B981;
-  --status-confirmed-bg: #D1FAE5;
-  --status-pending: #F59E0B;
-  --status-pending-bg: #FEF3C7;
-  --status-done: #6366F1;
-  --status-done-bg: #E0E7FF;
-  --status-cancelled: #EF4444;
-  --status-cancelled-bg: #FEE2E2;
-  --status-analysis: #8B5CF6;
-  --status-analysis-bg: #EDE9FE;
-  --status-approved: #10B981;
-  --status-approved-bg: #D1FAE5;
+  /* Status Colors - Padrão Global */
+  --status-analysis: #F59E0B;        /* Amarelo */
+  --status-analysis-bg: #FEF3C7;
+  --status-autorizado: #10B981;      /* Verde */
+  --status-autorizado-bg: #D1FAE5;
+  --status-executado: #8B5CF6;       /* Roxo */
+  --status-executado-bg: #EDE9FE;
+  --status-concluido: #1E3A8A;       /* Azul Escuro */
+  --status-concluido-bg: #DBEAFE;
+  --status-negado: #EF4444;          /* Vermelho */
+  --status-negado-bg: #FEE2E2;
+
+  /* Aliases para retrocompatibilidade */
+  --status-pending: var(--status-analysis);
+  --status-pending-bg: var(--status-analysis-bg);
+  --status-approved: var(--status-autorizado);
+  --status-approved-bg: var(--status-autorizado-bg);
+  --status-confirmed: var(--status-autorizado);
+  --status-confirmed-bg: var(--status-autorizado-bg);
+  --status-done: var(--status-concluido);
+  --status-done-bg: var(--status-concluido-bg);
+  --status-cancelled: var(--status-negado);
+  --status-cancelled-bg: var(--status-negado-bg);
 
   /* Spacing */
   --space-xs: 4px;
@@ -146,6 +156,24 @@ input, select, textarea {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--space-md);
+}
+
+.btn-voltar-padrao {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+  cursor: pointer;
+  border: none;
+}
+
+.btn-voltar-padrao:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .sr-only {

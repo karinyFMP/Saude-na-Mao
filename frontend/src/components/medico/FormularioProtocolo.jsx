@@ -100,31 +100,6 @@ export default function FormularioProtocolo({ medico, onSuccess, onCancel }) {
 
   return (
     <div style={{ maxWidth: '850px', margin: '0 auto', width: '100%' }}>
-      {/* Sub-cabeçalho: Botão de voltar acima do cartão */}
-      <div style={{ marginBottom: '20px' }}>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            fontWeight: 600,
-            fontSize: '0.95rem',
-            cursor: 'pointer',
-            padding: '8px 0',
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary-dark)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
-        >
-          <ArrowLeft size={18} />
-          Voltar ao Painel
-        </button>
-      </div>
 
       <div className="pm-form-card" style={{ padding: '0', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
         {/* Cabeçalho do Cartão */}

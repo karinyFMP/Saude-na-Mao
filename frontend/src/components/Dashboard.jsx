@@ -293,9 +293,10 @@ export default function Dashboard({ paciente, refreshKey, onNavigate, onLogout }
                     <div className="dash-card-header-new">
                       <h3 className="dash-card-title">{p.especialidade}</h3>
                       <span className={`dash-badge-status status-${
-                        p.status === 'Aprovado' ? 'confirmed' :
-                        p.status === 'Concluído' ? 'done' :
-                        p.status === 'Negado' ? 'cancelled' : 'pending'
+                        p.status === 'Autorizado' ? 'autorizado' :
+                        p.status === 'Executado'  ? 'executado' :
+                        p.status === 'Concluído' ? 'concluido' :
+                        p.status === 'Negado' ? 'negado' : 'analysis'
                       }`}>{p.status}</span>
                     </div>
                     <div className="dash-card-details" style={{ marginTop: '12px' }}>

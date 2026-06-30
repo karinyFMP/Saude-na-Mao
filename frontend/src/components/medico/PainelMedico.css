@@ -451,9 +451,10 @@ table.pm-table {
 }
 
 .pm-status-badge--em-analise { background: var(--status-analysis-bg); color: var(--status-analysis); }
-.pm-status-badge--aprovado   { background: var(--status-approved-bg);  color: var(--status-approved); }
-.pm-status-badge--negado     { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
-.pm-status-badge--concluido  { background: var(--status-done-bg);      color: var(--status-done); }
+.pm-status-badge--autorizado { background: var(--status-autorizado-bg); color: var(--status-autorizado); }
+.pm-status-badge--executado  { background: var(--status-executado-bg); color: var(--status-executado); }
+.pm-status-badge--negado     { background: var(--status-negado-bg); color: var(--status-negado); }
+.pm-status-badge--concluido  { background: var(--status-concluido-bg); color: var(--status-concluido); }
 
 /* Action button */
 .pm-action-btn {

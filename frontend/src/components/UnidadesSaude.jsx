@@ -60,7 +60,7 @@ export default function UnidadesSaude({ onBack }) {
     <div className="unidades-page">
       {/* Header */}
       <header className="ubs-header">
-        <button className="ubs-back" onClick={onBack} aria-label="Voltar">
+        <button className="btn-voltar-padrao" onClick={onBack} aria-label="Voltar">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="15 18 9 12 15 6"/>
           </svg>

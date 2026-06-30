@@ -28,23 +28,26 @@ export default function Protocolos({ paciente, onBack }) {
 
   const getStatusClass = (status) => {
     switch (status) {
-      case 'Aprovado': return 'approved';
+      case 'Autorizado': return 'autorizado';
+      case 'Executado':  return 'executado';
       case 'Em análise': return 'analysis';
-      case 'Concluído': return 'done';
-      case 'Negado': return 'denied';
+      case 'Concluído':  return 'concluido';
+      case 'Negado':     return 'negado';
       default: return 'analysis';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Aprovado': return '✓';
-      case 'Em análise': return '◷';
-      case 'Concluído': return '✓';
-      case 'Negado': return '✕';
-      default: return '◷';
+      case 'Autorizado': return '✓';
+      case 'Executado':  return '★';
+      case 'Em análise': return '⏳';
+      case 'Concluído':  return '✓✓';
+      case 'Negado':     return '✗';
+      default: return '…';
     }
   };
+
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
@@ -56,7 +59,7 @@ export default function Protocolos({ paciente, onBack }) {
     ? protocolos
     : protocolos.filter((p) => p.status === filter);
 
-  const statusOptions = ['todos', 'Em análise', 'Aprovado', 'Concluído', 'Negado'];
+  const statusOptions = ['todos', 'Em análise', 'Autorizado', 'Executado', 'Concluído', 'Negado'];
 
   if (loading) {
     return (
@@ -71,7 +74,7 @@ export default function Protocolos({ paciente, onBack }) {
     <div className="protocolos-page">
       {/* Header */}
       <header className="proto-header">
-        <button className="proto-back" onClick={onBack} aria-label="Voltar">
+        <button className="btn-voltar-padrao" onClick={onBack} aria-label="Voltar">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
@@ -119,7 +122,7 @@ export default function Protocolos({ paciente, onBack }) {
                     <h3 className="proto-card-title">{proto.especialidade}</h3>
                   </div>
                   <span className={`proto-status proto-status-${getStatusClass(proto.status)}`}>
-                    {getStatusIcon(proto.status)} {proto.status}
+                    {proto.status}
                   </span>
                 </div>
 

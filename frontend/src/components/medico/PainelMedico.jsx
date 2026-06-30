@@ -17,10 +17,11 @@ import './PainelMedico.css';
 // ============================================================
 
 const STATUS_META = {
-  'Em análise': { cls: 'em-analise', Icon: Clock },
-  'Aprovado':   { cls: 'aprovado',   Icon: CheckCircle2 },
-  'Negado':     { cls: 'negado',     Icon: XCircle },
-  'Concluído':  { cls: 'concluido',  Icon: CheckCheck },
+  'Em análise': { cls: 'em-analise',  Icon: Clock },
+  'Autorizado':  { cls: 'autorizado',  Icon: CheckCircle2 },
+  'Executado':   { cls: 'executado',   Icon: CheckCheck },
+  'Negado':      { cls: 'negado',      Icon: XCircle },
+  'Concluído':   { cls: 'concluido',   Icon: CheckCheck },
 };
 
 function formatDate(dateStr) {
@@ -113,19 +114,21 @@ export default function PainelMedico() {
 
   // Estatísticas derivadas
   const stats = {
-    total:      protocolos.length,
-    emAnalise:  protocolos.filter(p => p.status === 'Em análise').length,
-    aprovados:  protocolos.filter(p => p.status === 'Aprovado').length,
-    negados:    protocolos.filter(p => p.status === 'Negado').length,
-    concluidos: protocolos.filter(p => p.status === 'Concluído').length,
+    total:       protocolos.length,
+    emAnalise:   protocolos.filter(p => p.status === 'Em análise').length,
+    autorizados: protocolos.filter(p => p.status === 'Autorizado').length,
+    executados:  protocolos.filter(p => p.status === 'Executado').length,
+    negados:     protocolos.filter(p => p.status === 'Negado').length,
+    concluidos:  protocolos.filter(p => p.status === 'Concluído').length,
   };
 
   const STAT_CARDS = [
-    { icon: LayoutDashboard, label: 'Total',       value: stats.total,      color: 'blue' },
-    { icon: Clock,           label: 'Em Análise',  value: stats.emAnalise,  color: 'purple' },
-    { icon: CheckCircle2,    label: 'Aprovados',   value: stats.aprovados,  color: 'green' },
-    { icon: XCircle,         label: 'Negados',     value: stats.negados,    color: 'red' },
-    { icon: CheckCheck,      label: 'Concluídos',  value: stats.concluidos, color: 'teal' },
+    { icon: LayoutDashboard, label: 'Total',        value: stats.total,       color: 'blue' },
+    { icon: Clock,           label: 'Em Análise',   value: stats.emAnalise,   color: 'purple' },
+    { icon: CheckCircle2,    label: 'Autorizados',   value: stats.autorizados, color: 'green' },
+    { icon: CheckCheck,      label: 'Executados',    value: stats.executados,  color: 'teal' },
+    { icon: XCircle,         label: 'Negados',       value: stats.negados,     color: 'red' },
+    { icon: CheckCheck,      label: 'Concluídos',    value: stats.concluidos,  color: 'blue' },
   ];
 
   // ============================================================
@@ -134,7 +137,13 @@ export default function PainelMedico() {
   if (view === 'novo-protocolo') {
     return (
       <div className="pm-wrapper">
-        <PainelHeader medico={medico} onLogout={handleLogout} />
+        <PainelHeader medico={medico} onLogout={handleLogout}>
+          <button className="btn-voltar-padrao" onClick={() => setView('dashboard')} aria-label="Voltar">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+        </PainelHeader>
 
         <main className="pm-main">
           <FormularioProtocolo
@@ -304,6 +313,7 @@ function PainelHeader({ medico, onLogout, children }) {
 
         {/* Grupo esquerdo: Logo + botão de voltar (se houver) */}
         <div className="pm-header-left-group">
+          {children}
           <div className="pm-header-brand">
             <Stethoscope size={22} className="pm-header-brand-icon" />
             <div>
@@ -311,9 +321,6 @@ function PainelHeader({ medico, onLogout, children }) {
               <span className="pm-header-subtitle">Painel do Médico</span>
             </div>
           </div>
-
-          {/* Botão de voltar — renderizado à esquerda, com gap do logo */}
-          {children}
         </div>
 
         {/* Grupo direito: info do médico + logout */}

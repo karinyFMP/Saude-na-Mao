@@ -341,9 +341,11 @@
 .dash-badge-status {
   font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 12px;
 }
-.status-confirmed, .status-done { background: #D1FAE5; color: #059669; }
-.status-pending { background: #FEF3C7; color: #D97706; }
-.status-cancelled { background: #FEE2E2; color: #DC2626; }
+.status-autorizado, .status-confirmed { background: var(--status-autorizado-bg); color: var(--status-autorizado); }
+.status-executado { background: var(--status-executado-bg); color: var(--status-executado); }
+.status-concluido, .status-done { background: var(--status-concluido-bg); color: var(--status-concluido); }
+.status-negado, .status-cancelled { background: var(--status-negado-bg); color: var(--status-negado); }
+.status-analysis, .status-pending { background: var(--status-analysis-bg); color: var(--status-analysis); }
 
 /* Card details */
 .dash-card-details {

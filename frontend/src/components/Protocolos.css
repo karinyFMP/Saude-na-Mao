@@ -150,10 +150,11 @@
   box-shadow: var(--shadow-card-hover);
 }
 
-.proto-card-approved { border-left-color: var(--status-approved); }
+.proto-card-autorizado { border-left-color: var(--status-autorizado); }
 .proto-card-analysis { border-left-color: var(--status-analysis); }
-.proto-card-done { border-left-color: var(--status-done); }
-.proto-card-denied { border-left-color: var(--status-cancelled); }
+.proto-card-executado { border-left-color: var(--status-executado); }
+.proto-card-concluido { border-left-color: var(--status-concluido); }
+.proto-card-negado { border-left-color: var(--status-negado); }
 
 .proto-card-header {
   padding: var(--space-md);
@@ -185,9 +186,9 @@
   flex-shrink: 0;
 }
 
-.proto-status-approved {
-  background: var(--status-approved-bg);
-  color: var(--status-approved);
+.proto-status-autorizado {
+  background: var(--status-autorizado-bg);
+  color: var(--status-autorizado);
 }
 
 .proto-status-analysis {
@@ -195,14 +196,19 @@
   color: var(--status-analysis);
 }
 
-.proto-status-done {
-  background: var(--status-done-bg);
-  color: var(--status-done);
+.proto-status-executado {
+  background: var(--status-executado-bg);
+  color: var(--status-executado);
 }
 
-.proto-status-denied {
-  background: var(--status-cancelled-bg);
-  color: var(--status-cancelled);
+.proto-status-concluido {
+  background: var(--status-concluido-bg);
+  color: var(--status-concluido);
+}
+
+.proto-status-negado {
+  background: var(--status-negado-bg);
+  color: var(--status-negado);
 }
 
 /* Footer */
@@ -232,9 +238,9 @@
   transition: width var(--transition-slow);
 }
 
-.proto-progress-approved {
+.proto-progress-autorizado {
   width: 75%;
-  background: var(--status-approved);
+  background: var(--status-autorizado);
 }
 
 .proto-progress-analysis {
@@ -245,19 +251,24 @@
   background-image: linear-gradient(
     90deg,
     var(--status-analysis) 0%,
-    #a78bfa 50%,
+    #FCD34D 50%,
     var(--status-analysis) 100%
   );
 }
 
-.proto-progress-done {
+.proto-progress-executado {
   width: 100%;
-  background: var(--status-done);
+  background: var(--status-executado);
 }
 
-.proto-progress-denied {
+.proto-progress-concluido {
   width: 100%;
-  background: var(--status-cancelled);
+  background: var(--status-concluido);
+}
+
+.proto-progress-negado {
+  width: 100%;
+  background: var(--status-negado);
 }
 
 @media (min-width: 768px) {

@@ -83,7 +83,7 @@ async function initializeDatabase() {
       paciente_id INTEGER NOT NULL,
       especialidade TEXT NOT NULL,
       descricao TEXT,
-      status TEXT CHECK(status IN ('Em análise', 'Aprovado', 'Negado', 'Concluído')) DEFAULT 'Em análise',
+      status TEXT CHECK(status IN ('Em análise', 'Autorizado', 'Executado', 'Negado', 'Concluído')) DEFAULT 'Em análise',
       data_pedido TEXT NOT NULL,
       data_resposta TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -135,6 +135,51 @@ async function initializeDatabase() {
   // Seed data
   await seedDatabase();
   await seedServidores();
+  
+  // Migração de status antigos e atualização de constraint do SQLite
+  try {
+    await runAsync(`UPDATE protocolos SET status = 'Autorizado' WHERE status = 'Aprovado'`);
+  } catch (err) {
+    if (err.code === 'SQLITE_CONSTRAINT') {
+      console.log('Realizando migração da tabela protocolos para atualizar a constraint CHECK...');
+      await runAsync(`PRAGMA foreign_keys=off`);
+      await runAsync(`DROP TABLE IF EXISTS protocolos_new`);
+      await runAsync(`
+        CREATE TABLE protocolos_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          paciente_id INTEGER NOT NULL,
+          especialidade TEXT NOT NULL,
+          descricao TEXT,
+          status TEXT CHECK(status IN ('Em análise', 'Autorizado', 'Executado', 'Negado', 'Concluído')) DEFAULT 'Em análise',
+          data_pedido TEXT NOT NULL,
+          data_resposta TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          tipo_protocolo TEXT,
+          prioridade TEXT,
+          parecer_medico TEXT,
+          medico_id INTEGER,
+          FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
+        )
+      `);
+      await runAsync(`
+        INSERT INTO protocolos_new 
+        SELECT 
+          id, paciente_id, especialidade, descricao, 
+          CASE WHEN status = 'Aprovado' THEN 'Autorizado' ELSE status END as status,
+          data_pedido, data_resposta, created_at, tipo_protocolo, prioridade, parecer_medico, medico_id
+        FROM protocolos
+      `);
+      await runAsync(`DROP TABLE protocolos`);
+      await runAsync(`ALTER TABLE protocolos_new RENAME TO protocolos`);
+      await runAsync(`PRAGMA foreign_keys=on`);
+      
+      // Tenta novamente após recriar a tabela
+      await runAsync(`UPDATE protocolos SET status = 'Autorizado' WHERE status = 'Aprovado'`);
+      console.log('Migração da tabela protocolos concluída.');
+    } else {
+      throw err;
+    }
+  }
 }
 
 async function seedServidores() {

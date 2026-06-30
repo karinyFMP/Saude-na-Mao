@@ -93,10 +93,11 @@
   letter-spacing: 0.5px;
 }
 
-.auditor-header-badge.Emanálise { background: var(--status-pending-bg); color: var(--status-pending); }
-.auditor-header-badge.Aprovado { background: var(--status-approved-bg); color: var(--status-approved); }
-.auditor-header-badge.Negado { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
-.auditor-header-badge.Concluído { background: var(--status-done-bg); color: var(--status-done); }
+.auditor-header-badge.Emanálise   { background: var(--status-analysis-bg); color: var(--status-analysis); }
+.auditor-header-badge.Autorizado  { background: var(--status-autorizado-bg); color: var(--status-autorizado); }
+.auditor-header-badge.Executado   { background: var(--status-executado-bg); color: var(--status-executado); }
+.auditor-header-badge.Negado      { background: var(--status-negado-bg); color: var(--status-negado); }
+.auditor-header-badge.Concluído   { background: var(--status-concluido-bg); color: var(--status-concluido); }
 
 .auditor-header-actions {
   display: flex;
@@ -274,6 +275,14 @@
   transform: translateY(-2px);
 }
 
+.auditor-btn-execute {
+  background: linear-gradient(135deg, #4F46E5, #818CF8);
+}
+.auditor-btn-execute:hover:not(:disabled) {
+  box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
 .auditor-btn-deny {
   background: linear-gradient(135deg, #DC2626, #EF4444);
 }
@@ -283,10 +292,10 @@
 }
 
 .auditor-btn-conclude {
-  background: linear-gradient(135deg, #4F46E5, #6366F1);
+  background: linear-gradient(135deg, #0369A1, #0EA5E9);
 }
 .auditor-btn-conclude:hover:not(:disabled) {
-  box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4);
   transform: translateY(-2px);
 }
 
@@ -301,10 +310,11 @@
   font-size: 1rem;
 }
 
-.auditor-status-readonly.Emanálise { background: var(--status-pending-bg); color: var(--status-pending); }
-.auditor-status-readonly.Aprovado { background: var(--status-approved-bg); color: var(--status-approved); }
-.auditor-status-readonly.Negado { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
-.auditor-status-readonly.Concluído { background: var(--status-done-bg); color: var(--status-done); }
+.auditor-status-readonly.Emanálise  { background: var(--status-analysis-bg); color: var(--status-analysis); }
+.auditor-status-readonly.Autorizado { background: var(--status-autorizado-bg); color: var(--status-autorizado); }
+.auditor-status-readonly.Executado  { background: var(--status-executado-bg); color: var(--status-executado); }
+.auditor-status-readonly.Negado     { background: var(--status-negado-bg); color: var(--status-negado); }
+.auditor-status-readonly.Concluído  { background: var(--status-concluido-bg); color: var(--status-concluido); }
 
 /* Loading state */
 .auditor-details-loading {
@@ -333,4 +343,102 @@
 .auditor-action-icon-btn:hover {
   background: var(--primary-bg);
   color: var(--primary-dark);
+}
+
+/* Card de Resultado de Exame / Parecer */
+.resultado-card {
+  border: 2px dashed #A5B4FC;
+  border-radius: 14px;
+  padding: 24px;
+  background: linear-gradient(135deg, #F0F4FF 0%, #F5F3FF 100%);
+  margin-top: 0;
+}
+
+.resultado-card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #3730A3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #C7D2FE;
+}
+
+.resultado-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid #E0E7FF;
+  font-size: 0.92rem;
+}
+
+.resultado-item:last-child { border-bottom: none; }
+
+.resultado-label {
+  color: #4B5563;
+  font-weight: 600;
+  min-width: 140px;
+}
+
+.resultado-valor {
+  color: #1E1B4B;
+  font-weight: 700;
+  text-align: right;
+}
+
+.resultado-valor.ok { color: #065F46; }
+.resultado-valor.alto { color: #B91C1C; }
+.resultado-valor.atencao { color: #92400E; }
+
+.resultado-assinatura {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 2px solid #C7D2FE;
+  font-size: 0.8rem;
+  color: #6B7280;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.parecer-card {
+  border: 2px dashed #6EE7B7;
+  border-radius: 14px;
+  padding: 24px;
+  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+  margin-top: 0;
+}
+
+.parecer-card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #065F46;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #A7F3D0;
+}
+
+.parecer-texto {
+  font-size: 0.97rem;
+  line-height: 1.75;
+  color: #1F2937;
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid #D1FAE5;
+  white-space: pre-wrap;
+}
+
+.parecer-assinatura {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: #6B7280;
+  display: flex;
+  justify-content: space-between;
 }
