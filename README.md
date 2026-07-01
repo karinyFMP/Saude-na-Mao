@@ -80,7 +80,7 @@ A arquitetura do projeto separa claramente os conceitos entre cliente (React) e 
 
 A aplicação está hospedada e pode ser acessada em tempo real:
 
-* **Frontend (Vercel):** [https://desenvolvimento-de-formularios-de-c.vercel.app](https://desenvolvimento-de-formularios-de-c.vercel.app)
+* **Frontend (Vercel):** [https://saude-na-mao-seven.vercel.app/](https://saude-na-mao-seven.vercel.app/)
 * **Backend & API (Render):** [https://saude-na-mao-qt2w.onrender.com](https://saude-na-mao-qt2w.onrender.com)
 
 > **⚠️ AVISO IMPORTANTE:** O serviço gratuito do Render utiliza Discos Efêmeros. Isto significa que a qualquer momento que a máquina for reiniciada (por inatividade ou atualização no provedor), o ficheiro `saude_na_mao_v2.db` será apagado e regressará ao seu estado inicial. Contas e protocolos adicionados na nuvem podem sumir periodicamente.
