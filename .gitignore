@@ -8,9 +8,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Banco de dados
-*.sqlite
-*.db
+# Banco de dados (permitindo envio para o GitHub a pedido do usuário)
+# *.sqlite
+# *.db
 
 # Build (Frontend)
 dist/
