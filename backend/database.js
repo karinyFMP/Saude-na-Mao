@@ -91,7 +91,34 @@ async function initializeDatabase() {
       prioridade TEXT,
       parecer_medico TEXT,
       medico_id INTEGER,
+      justificativa_auditor TEXT,
+      cid TEXT,
+      procedimentos TEXT,
       FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
+    )
+  `);
+
+  // Garante que a coluna existe caso o banco já tenha sido criado
+  try {
+    await runAsync("ALTER TABLE protocolos ADD COLUMN justificativa_auditor TEXT");
+  } catch (err) {}
+  try {
+    await runAsync("ALTER TABLE protocolos ADD COLUMN cid TEXT");
+  } catch (err) {}
+  try {
+    await runAsync("ALTER TABLE protocolos ADD COLUMN procedimentos TEXT");
+  } catch (err) {}
+
+  // Tabela de anexos (PDFs de exames)
+  await runAsync(`
+    CREATE TABLE IF NOT EXISTS protocolo_anexos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      protocolo_id INTEGER NOT NULL,
+      nome_arquivo TEXT NOT NULL,
+      caminho TEXT NOT NULL,
+      tamanho INTEGER,
+      uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (protocolo_id) REFERENCES protocolos(id) ON DELETE CASCADE
     )
   `);
 
@@ -158,6 +185,7 @@ async function initializeDatabase() {
           prioridade TEXT,
           parecer_medico TEXT,
           medico_id INTEGER,
+          justificativa_auditor TEXT,
           FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
         )
       `);
@@ -166,7 +194,7 @@ async function initializeDatabase() {
         SELECT 
           id, paciente_id, especialidade, descricao, 
           CASE WHEN status = 'Aprovado' THEN 'Autorizado' ELSE status END as status,
-          data_pedido, data_resposta, created_at, tipo_protocolo, prioridade, parecer_medico, medico_id
+          data_pedido, data_resposta, created_at, tipo_protocolo, prioridade, parecer_medico, medico_id, justificativa_auditor
         FROM protocolos
       `);
       await runAsync(`DROP TABLE protocolos`);

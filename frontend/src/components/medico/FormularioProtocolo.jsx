@@ -1,9 +1,9 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   AlertCircle, FileText, User, Stethoscope, ClipboardList,
-  ChevronDown, Send, RotateCcw, Info, ArrowLeft
+  ChevronDown, Send, RotateCcw, Info, ArrowLeft, Search
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import {
@@ -13,7 +13,7 @@ import {
   ESPECIALIDADES,
   PRIORIDADES,
 } from '../../schemas/protocoloMedicoSchema';
-import { criarProtocolo } from '../../services/medicoApi';
+import { criarProtocolo, buscarPaciente } from '../../services/medicoApi';
 
 // ============================================================
 // HELPERS
@@ -47,6 +47,8 @@ function FieldError({ message }) {
 
 export default function FormularioProtocolo({ medico, onSuccess, onCancel }) {
   const [submitting, setSubmitting] = useState(false);
+  const [pacienteEncontrado, setPacienteEncontrado] = useState(null);
+  const [buscandoPaciente, setBuscandoPaciente] = useState(false);
 
   const {
     register,
@@ -54,17 +56,22 @@ export default function FormularioProtocolo({ medico, onSuccess, onCancel }) {
     watch,
     reset,
     control,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(protocoloSchema),
     defaultValues: {
-      pacienteCpf:   '',
-      pacienteNome:  '',
-      tipoProtocolo: '',
-      especialidade: '',
-      prioridade:    '',
-      descricao:     '',
-      parecerMedico: '',
+      pacienteCpf:      '',
+      pacienteNome:     '',
+      pacienteDataNasc: '',
+      pacienteTelefone: '',
+      cid:              '',
+      procedimento:     '',
+      tipoProtocolo:    '',
+      especialidade:    '',
+      prioridade:       '',
+      descricao:        '',
+      parecerMedico:    '',
     },
   });
 
@@ -78,11 +85,30 @@ export default function FormularioProtocolo({ medico, onSuccess, onCancel }) {
     ? TODOS_TIPOS_PROTOCOLO.filter(t => t !== 'Encaminhamento ao Especialista')
     : TODOS_TIPOS_PROTOCOLO;
 
+  const handleCpfBlur = useCallback(async (cpf) => {
+    const digits = cpf.replace(/\D/g, '');
+    if (digits.length !== 11) return;
+    setBuscandoPaciente(true);
+    try {
+      const paciente = await buscarPaciente(cpf);
+      setPacienteEncontrado(paciente);
+      setValue('pacienteNome', paciente.nome);
+      setValue('pacienteDataNasc', paciente.data_nascimento || '');
+      setValue('pacienteTelefone', paciente.telefone || '');
+    } catch {
+      setPacienteEncontrado(null);
+      toast.warning('Paciente não encontrado para este CPF. Verifique ou preencha manualmente.');
+    } finally {
+      setBuscandoPaciente(false);
+    }
+  }, []);
+
   const onSubmit = async (dados) => {
     setSubmitting(true);
     try {
       await criarProtocolo({
         ...dados,
+        procedimentos: dados.procedimento, // mapeia o campo do form para o backend
         medicoId:    medico?.id,
         medicoNome:  medico?.nome,
         medicoCrm:   medico?.crm,
@@ -137,15 +163,31 @@ export default function FormularioProtocolo({ medico, onSuccess, onCancel }) {
                   name="pacienteCpf"
                   control={control}
                   render={({ field }) => (
-                    <input
-                      id="pacienteCpf"
-                      className={`pm-input ${errors.pacienteCpf ? 'pm-input--error' : ''}`}
-                      placeholder="000.000.000-00"
-                      value={field.value}
-                      onChange={(e) => field.onChange(formatCpf(e.target.value))}
-                      maxLength={14}
-                      autoComplete="off"
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        id="pacienteCpf"
+                        className={`pm-input ${errors.pacienteCpf ? 'pm-input--error' : ''}`}
+                        placeholder="000.000.000-00"
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(formatCpf(e.target.value));
+                          if (pacienteEncontrado) setPacienteEncontrado(null);
+                        }}
+                        onBlur={(e) => handleCpfBlur(e.target.value)}
+                        maxLength={14}
+                        autoComplete="off"
+                      />
+                      {buscandoPaciente && (
+                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem', color: 'var(--primary)' }}>
+                          Buscando...
+                        </span>
+                      )}
+                      {pacienteEncontrado && !buscandoPaciente && (
+                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: '#10B981' }}>
+                          <Search size={14} />
+                        </span>
+                      )}
+                    </div>
                   )}
                 />
                 <FieldError message={errors.pacienteCpf?.message} />
@@ -157,11 +199,43 @@ export default function FormularioProtocolo({ medico, onSuccess, onCancel }) {
                 </label>
                 <input
                   id="pacienteNome"
-                  className={`pm-input ${errors.pacienteNome ? 'pm-input--error' : ''}`}
+                  className={`pm-input ${errors.pacienteNome ? 'pm-input--error' : ''} ${pacienteEncontrado ? 'pm-input--readonly' : ''}`}
                   placeholder="Ex: Maria da Silva"
+                  readOnly={!!pacienteEncontrado}
+                  style={pacienteEncontrado ? { background: '#F0FDF4', cursor: 'default' } : {}}
                   {...register('pacienteNome')}
                 />
                 <FieldError message={errors.pacienteNome?.message} />
+              </div>
+            </div>
+
+            {/* Linha 1b: Data de Nascimento + Telefone */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="pm-field">
+                <label htmlFor="pacienteDataNasc" className="pm-label">
+                  Data de Nascimento
+                </label>
+                <input
+                  id="pacienteDataNasc"
+                  type="date"
+                  className="pm-input"
+                  readOnly={!!pacienteEncontrado}
+                  style={pacienteEncontrado ? { background: '#F0FDF4', cursor: 'default' } : {}}
+                  {...register('pacienteDataNasc')}
+                />
+              </div>
+              <div className="pm-field">
+                <label htmlFor="pacienteTelefone" className="pm-label">
+                  Telefone
+                </label>
+                <input
+                  id="pacienteTelefone"
+                  className="pm-input"
+                  placeholder="(63) 90000-0000"
+                  readOnly={!!pacienteEncontrado}
+                  style={pacienteEncontrado ? { background: '#F0FDF4', cursor: 'default' } : {}}
+                  {...register('pacienteTelefone')}
+                />
               </div>
             </div>
           </div>
@@ -216,6 +290,35 @@ export default function FormularioProtocolo({ medico, onSuccess, onCancel }) {
                   <ChevronDown size={16} className="pm-select-icon" />
                 </div>
                 <FieldError message={errors.prioridade?.message} />
+              </div>
+            </div>
+
+            {/* Linha 2.5: Grid 1fr 1fr para CID e Procedimento */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', marginBottom: '20px' }}>
+              <div className="pm-field">
+                <label htmlFor="cid" className="pm-label">
+                  CID <span className="pm-required">*</span>
+                </label>
+                <input
+                  id="cid"
+                  className={`pm-input ${errors.cid ? 'pm-input--error' : ''}`}
+                  placeholder="Ex: A00.0"
+                  {...register('cid')}
+                />
+                <FieldError message={errors.cid?.message} />
+              </div>
+
+              <div className="pm-field">
+                <label htmlFor="procedimento" className="pm-label">
+                  Procedimento Solicitado <span className="pm-required">*</span>
+                </label>
+                <input
+                  id="procedimento"
+                  className={`pm-input ${errors.procedimento ? 'pm-input--error' : ''}`}
+                  placeholder="Ex: Ressonância Magnética do Joelho Esquerdo"
+                  {...register('procedimento')}
+                />
+                <FieldError message={errors.procedimento?.message} />
               </div>
             </div>
 

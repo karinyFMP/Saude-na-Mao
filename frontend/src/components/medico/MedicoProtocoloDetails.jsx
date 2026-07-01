@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { 
-  User, Calendar, FileText, 
+import {
+  User, Calendar, FileText,
   CheckCircle2, XCircle, CheckCheck, Loader2, Stethoscope, Clock,
-  FlaskConical, ClipboardList, BadgeCheck
+  FlaskConical, ClipboardList, BadgeCheck, Building2
 } from 'lucide-react';
 import { useMedicoAuth } from '../../contexts/MedicoAuthContext';
-import { getProtocoloDetalhes } from '../../services/medicoApi';
+import { getProtocoloDetalhes, getAnexosProtocolo, uploadAnexoProtocolo, deleteAnexoProtocolo } from '../../services/medicoApi';
+import ProtocoloAnexos from '../ProtocoloAnexos';
 
 import '../auditor/AuditorProtocoloDetails.css';
 
@@ -19,6 +20,82 @@ function formatDate(dateStr) {
   }
   const [y, m, d] = dateStr.split('-');
   return `${d}/${m}/${y}`;
+}
+
+/** Gera dados mocados por especialidade/procedimento */
+function getMockFicha(protocolo) {
+  const esp = (protocolo.especialidade || protocolo.medico_solicitante_especialidade || '').toLowerCase();
+  const tipo = (protocolo.tipo_protocolo || '').toLowerCase();
+
+  let cid = 'Z00.0';
+  let procedimento = 'Consulta Médica Eletiva';
+  let cnesExecutante = '2492482';
+  let cnesSolicitante = '2492504';
+  let unidadeExecutante = 'CENTRO DE ATENÇÃO ESPECIALIZADA À SAÚDE';
+  let profissionalExecutante = protocolo.medico_solicitante_nome || 'Dr(a). Especialista';
+  let risco = protocolo.prioridade || 'Eletiva';
+
+  if (esp.includes('cardio')) {
+    cid = 'I10';
+    procedimento = 'Consulta em Cardiologia / Eletrocardiograma';
+    unidadeExecutante = 'CENTRO ESPECIALIZADO DE CARDIOLOGIA E DIAGNÓSTICO';
+    cnesExecutante = '2589031';
+  } else if (esp.includes('oftalmo')) {
+    cid = 'H26.9';
+    procedimento = 'Consulta em Oftalmologia / Mapeamento de Retina';
+    unidadeExecutante = 'CLÍNICA DE OFTALMOLOGIA VISÃO SAÚDE';
+    cnesExecutante = '2589120';
+  } else if (esp.includes('ortoped')) {
+    cid = 'M23.2';
+    procedimento = 'Consulta em Ortopedia / Ressonância Magnética Articular';
+    unidadeExecutante = 'CENTRO DE DIAGNÓSTICO POR IMAGEM E ORTOPEDIA';
+    cnesExecutante = '2630417';
+  } else if (esp.includes('neurolog')) {
+    cid = 'G40.9';
+    procedimento = 'Consulta em Neurologia / Eletroencefalograma';
+    unidadeExecutante = 'INSTITUTO DE NEUROLOGIA E DIAGNÓSTICO';
+    cnesExecutante = '2718305';
+  } else if (esp.includes('urol') || tipo.includes('urinar')) {
+    cid = 'N39.0';
+    procedimento = 'Consulta em Urologia / Ultrasonografia de Aparelho Urinário';
+    unidadeExecutante = 'CENTRO DE ATENÇÃO ESP. À SAÚDE FRANCISCA ROMANA CHAVES';
+    cnesExecutante = '2492482';
+  } else if (tipo.includes('cirurgia')) {
+    cid = 'K40.9';
+    procedimento = 'Procedimento Cirúrgico Eletivo';
+    unidadeExecutante = 'HOSPITAL REGIONAL DE REFERÊNCIA';
+    cnesExecutante = '2490012';
+  } else if (tipo.includes('imagem') || tipo.includes('tomografia')) {
+    cid = 'R91';
+    procedimento = 'Exame de Imagem / Tomografia Computadorizada';
+    unidadeExecutante = 'CENTRO DE DIAGNÓSTICO POR IMAGEM';
+    cnesExecutante = '2630417';
+  } else if (tipo.includes('laborat') || tipo.includes('exame')) {
+    cid = 'Z00.0';
+    procedimento = 'Exame Laboratorial Completo / Hemograma e Bioquímica';
+    unidadeExecutante = 'LABORATÓRIO CENTRAL DE ANÁLISES CLÍNICAS';
+    cnesExecutante = '2498770';
+  }
+
+  const endPaciente = {
+    logradouro: 'Quadra ARSE 61',
+    numero: 'Lote 14',
+    bairro: 'Plano Diretor Sul',
+    municipio: 'Palmas - TO',
+    cep: '77022-030',
+  };
+
+  const horaAtendimento = '14h00min';
+  const dataHoraAtendimento = protocolo.data_resposta
+    ? `${formatDate(protocolo.data_resposta)} • ${horaAtendimento}`
+    : null;
+
+  return {
+    cid, risco, procedimento,
+    cnesExecutante, cnesSolicitante,
+    unidadeExecutante, profissionalExecutante,
+    dataHoraAtendimento, endPaciente,
+  };
 }
 
 function getMockResultados(especialidade, dataExecucao) {
@@ -40,6 +117,22 @@ function getMockResultados(especialidade, dataExecucao) {
       { label: 'Biomicroscopia', valor: 'Opacidade bilateral', cls: 'atencao' },
     ], data, laboratorio: 'Clínica Oftalmo Visão',
   };
+  if (esp.includes('ortoped')) return {
+    tipo: 'Raio-X + Ressonância Magnética',
+    itens: [
+      { label: 'Espaço articular', valor: 'Reduzido (grau II)', cls: 'atencao' },
+      { label: 'Ligamento Cruzado Ant.', valor: 'Ruptura parcial', cls: 'alto' },
+      { label: 'Cartilagem articular', valor: 'Preservada', cls: 'ok' },
+    ], data, laboratorio: 'Centro de Diagnóstico por Imagem',
+  };
+  if (esp.includes('neurolog')) return {
+    tipo: 'Eletroencefalograma + RM Cerebral',
+    itens: [
+      { label: 'Atividade cortical', valor: 'Normal', cls: 'ok' },
+      { label: 'Estruturas cerebrais', valor: 'Sem alterações', cls: 'ok' },
+      { label: 'Vascularização', valor: 'Fluxo preservado', cls: 'ok' },
+    ], data, laboratorio: 'Instituto de Neuroimagem',
+  };
   return {
     tipo: 'Hemograma Completo + Exames Bioquímicos',
     itens: [
@@ -55,7 +148,7 @@ function getMockParecer(protocolo) {
   return {
     texto: `Após avaliação clínica completa e análise dos exames solicitados, concluo que o quadro do paciente encontra-se dentro dos parâmetros esperados para o diagnóstico em questão.\n\nRecomendo acompanhamento ambulatorial regular e manutenção das orientações terapêuticas já prescritas.\n\nRetorno programado para 60 dias ou antes em caso de agravamento dos sintomas.`,
     medico: protocolo.medico_solicitante_nome || 'Dr(a). Especialista',
-    crm: protocolo.medico_solicitante_crm || 'CRM/SP 00000',
+    crm: protocolo.medico_solicitante_crm || 'CRM/TO 00000',
     data,
   };
 }
@@ -65,6 +158,14 @@ function isConsultaEspecialista(protocolo) {
   const esp = (protocolo.medico_solicitante_especialidade || protocolo.especialidade || '').toLowerCase();
   return tipo.includes('consulta') || (!esp.includes('clínico geral') && !esp.includes('clinico geral') && esp.length > 0);
 }
+
+const STATUS_STYLE = {
+  'Em análise': { bg: 'var(--status-analysis-bg)', color: 'var(--status-analysis)' },
+  'Autorizado':  { bg: 'var(--status-autorizado-bg)', color: 'var(--status-autorizado)' },
+  'Executado':   { bg: 'var(--status-executado-bg)', color: 'var(--status-executado)' },
+  'Negado':      { bg: 'var(--status-negado-bg)', color: 'var(--status-negado)' },
+  'Concluído':   { bg: 'var(--status-concluido-bg)', color: 'var(--status-concluido)' },
+};
 
 export default function MedicoProtocoloDetails() {
   const { id } = useParams();
@@ -102,13 +203,17 @@ export default function MedicoProtocoloDetails() {
 
   if (!protocolo) return null;
 
+  const ficha = getMockFicha(protocolo);
   const mostrarResultados = ['Executado', 'Concluído'].includes(protocolo.status);
   const ehConsultaEsp = isConsultaEspecialista(protocolo);
+  const statusStyle = STATUS_STYLE[protocolo.status] || {};
+  const mostrarExecutante = ['Autorizado', 'Executado', 'Concluído'].includes(protocolo.status);
 
   return (
     <div className="auditor-details-page">
-      <header className="dash-header-compact" style={{ 
-        background: 'var(--primary-dark)', 
+      {/* Header */}
+      <header className="dash-header-compact" style={{
+        background: 'var(--primary-dark)',
         padding: '24px 0',
         boxShadow: '0 4px 15px rgba(0, 47, 108, 0.15)'
       }}>
@@ -128,75 +233,182 @@ export default function MedicoProtocoloDetails() {
       </header>
 
       <main className="auditor-details-main">
-        <div className="auditor-details-header">
-          <div className="auditor-details-header-left">
-            <h2 className="auditor-details-title">Protocolo #{protocolo.id}</h2>
-            <div className={`auditor-header-badge ${protocolo.status.replace(' ', '')}`}>
+        <div className="ficha-wrapper">
+
+          {/* ── Chave de Confirmação ── */}
+          <div className="ficha-confirmacao">
+            <div>
+              <div className="ficha-confirmacao-label">Chave de Confirmação</div>
+              <div className="ficha-confirmacao-valor">#{String(protocolo.id).padStart(5, '0')}</div>
+            </div>
+            <div style={{
+              padding: '6px 18px',
+              borderRadius: 100,
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              background: statusStyle.bg,
+              color: statusStyle.color,
+            }}>
               {protocolo.status}
             </div>
           </div>
-        </div>
 
-        <div className="auditor-details-grid">
-          {/* Coluna Esquerda: Paciente */}
-          <div className="auditor-details-card">
-            <h3><User size={18} /> Informações do Paciente</h3>
-            <div className="auditor-patient-info-list">
-              <div className="auditor-info-item">
-                <span className="auditor-info-label">Nome Completo</span>
-                <span className="auditor-info-value">{protocolo.paciente_nome}</span>
-              </div>
-              <div className="auditor-info-item">
-                <span className="auditor-info-label">CPF</span>
-                <span className="auditor-info-value">{protocolo.paciente_cpf}</span>
+          {/* ── Unidade Solicitante ── */}
+          <div className="ficha-section">
+            <div className="ficha-section-header">
+              <Building2 size={15} color="rgba(255,255,255,0.8)" />
+              <h4>Unidade Solicitante</h4>
+            </div>
+            <div className="ficha-section-body">
+              <div className="ficha-grid">
+                <div className="ficha-field ficha-field--span2">
+                  <span className="ficha-field-label">Unidade Solicitante</span>
+                  <span className="ficha-field-value">{protocolo.paciente_unidade || 'UNIDADE DE SAÚDE DA FAMÍLIA'}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Cód. CNES</span>
+                  <span className="ficha-field-value">{ficha.cnesSolicitante}</span>
+                </div>
+                <div className="ficha-field ficha-field--span2">
+                  <span className="ficha-field-label">Op. Solicitante (Médico)</span>
+                  <span className="ficha-field-value ficha-field-value--primary">
+                    {protocolo.medico_solicitante_nome || medico?.nome || '—'}
+                  </span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">CRM</span>
+                  <span className="ficha-field-value">{protocolo.medico_solicitante_crm || medico?.crm || '—'}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Coluna Direita */}
-          <div className="auditor-right-col">
-            <div className="auditor-details-card">
-              <h3><Stethoscope size={18} /> Médico Solicitante</h3>
-              <div className="auditor-patient-info-list">
-                <div className="auditor-info-item">
-                  <span className="auditor-info-label">Nome</span>
-                  <span className="auditor-info-value">{protocolo.medico_solicitante_nome || 'Não informado'}</span>
-                </div>
-                <div className="auditor-info-item">
-                  <span className="auditor-info-label">Especialidade</span>
-                  <span className="auditor-info-value" style={{ color: 'var(--primary)' }}>{protocolo.medico_solicitante_especialidade || 'Não informada'}</span>
-                </div>
-                <div className="auditor-info-item">
-                  <span className="auditor-info-label">CRM</span>
-                  <span className="auditor-info-value">{protocolo.medico_solicitante_crm || 'Não informado'}</span>
+          {/* ── Unidade Executante ── */}
+          {mostrarExecutante && (
+            <div className="ficha-section">
+              <div className="ficha-section-header" style={{ background: 'linear-gradient(90deg, #065F46 0%, #059669 100%)' }}>
+                <Stethoscope size={15} color="rgba(255,255,255,0.8)" />
+                <h4>Unidade Executante</h4>
+              </div>
+              <div className="ficha-section-body">
+                <div className="ficha-grid">
+                  <div className="ficha-field ficha-field--span2">
+                    <span className="ficha-field-label">Unidade Executante</span>
+                    <span className="ficha-field-value ficha-field-value--primary">{ficha.unidadeExecutante}</span>
+                  </div>
+                  <div className="ficha-field">
+                    <span className="ficha-field-label">Cód. CNES</span>
+                    <span className="ficha-field-value">{ficha.cnesExecutante}</span>
+                  </div>
+                  <div className="ficha-field ficha-field--span2">
+                    <span className="ficha-field-label">Profissional Executante</span>
+                    <span className="ficha-field-value">{ficha.profissionalExecutante}</span>
+                  </div>
+                  {ficha.dataHoraAtendimento && (
+                    <div className="ficha-field">
+                      <span className="ficha-field-label">Data e Horário</span>
+                      <div className="ficha-highlight-box">
+                        <span className="ficha-field-value">{ficha.dataHoraAtendimento}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="auditor-details-card">
-              <h3><FileText size={18} /> Detalhes da Solicitação</h3>
-              <div className="auditor-protocol-info-grid" style={{ marginBottom: 24 }}>
-                <div className="auditor-info-item">
-                  <span className="auditor-info-label">Especialidade / Tipo</span>
-                  <span className="auditor-info-value" style={{ color: 'var(--primary)' }}>
-                    {protocolo.tipo_protocolo || protocolo.especialidade}
-                  </span>
+          {/* ── Dados do Paciente ── */}
+          <div className="ficha-section">
+            <div className="ficha-section-header">
+              <User size={15} color="rgba(255,255,255,0.8)" />
+              <h4>Dados do Paciente</h4>
+            </div>
+            <div className="ficha-section-body">
+              <div className="ficha-grid">
+                <div className="ficha-field ficha-field--span2">
+                  <span className="ficha-field-label">Nome do Paciente</span>
+                  <span className="ficha-field-value">{protocolo.paciente_nome}</span>
                 </div>
-                <div className="auditor-info-item">
-                  <span className="auditor-info-label">Prioridade</span>
-                  <span className="auditor-info-value">{protocolo.prioridade || 'Não informada'}</span>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">CPF</span>
+                  <span className="ficha-field-value">{protocolo.paciente_cpf}</span>
                 </div>
-                <div className="auditor-info-item">
-                  <span className="auditor-info-label">Data do Pedido</span>
-                  <span className="auditor-info-value" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Calendar size={16} style={{color: '#64748B'}}/> {formatDate(protocolo.data_pedido)}
-                  </span>
+                <div className="ficha-field ficha-field--span2">
+                  <span className="ficha-field-label">Logradouro</span>
+                  <span className="ficha-field-value">{ficha.endPaciente.logradouro}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Número</span>
+                  <span className="ficha-field-value">{ficha.endPaciente.numero}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Bairro</span>
+                  <span className="ficha-field-value">{ficha.endPaciente.bairro}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">CEP</span>
+                  <span className="ficha-field-value">{ficha.endPaciente.cep}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Município</span>
+                  <span className="ficha-field-value">{ficha.endPaciente.municipio}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Telefone</span>
+                  <span className="ficha-field-value">{protocolo.telefone || '—'}</span>
                 </div>
               </div>
-              
-              <div className="auditor-info-item" style={{ marginBottom: 16 }}>
-                <span className="auditor-info-label">Descrição / Justificativa Médica</span>
-                <div className="auditor-description-box">
+            </div>
+          </div>
+
+          {/* ── Dados da Solicitação ── */}
+          <div className="ficha-section">
+            <div className="ficha-section-header">
+              <FileText size={15} color="rgba(255,255,255,0.8)" />
+              <h4>Dados da Solicitação</h4>
+            </div>
+            <div className="ficha-section-body">
+              <div className="ficha-grid ficha-grid--4">
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Código da Solicitação</span>
+                  <span className="ficha-field-value" style={{ fontFamily: 'monospace' }}>
+                    {String(protocolo.id).padStart(9, '0')}
+                  </span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">CID</span>
+                  <span className="ficha-field-value">{protocolo.cid || ficha.cid}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Risco / Prioridade</span>
+                  <span className="ficha-field-value">{ficha.risco}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Data da Solicitação</span>
+                  <span className="ficha-field-value">{formatDate(protocolo.data_pedido)}</span>
+                </div>
+              </div>
+
+              <hr className="ficha-divider" />
+
+              <div className="ficha-grid">
+                <div className="ficha-field ficha-field--span2">
+                  <span className="ficha-field-label">Procedimentos Solicitados</span>
+                  <span className="ficha-field-value ficha-field-value--primary">{protocolo.procedimentos || ficha.procedimento}</span>
+                </div>
+                <div className="ficha-field">
+                  <span className="ficha-field-label">Tipo de Protocolo</span>
+                  <span className="ficha-field-value">{protocolo.tipo_protocolo || protocolo.especialidade || '—'}</span>
+                </div>
+              </div>
+
+              <hr className="ficha-divider" />
+
+              <div className="ficha-field">
+                <span className="ficha-field-label">Laudo / Justificativa Médica</span>
+                <div className="ficha-justificativa">
                   {protocolo.descricao || 'Nenhuma descrição fornecida.'}
                   {protocolo.parecer_medico && (
                     <div style={{ paddingTop: '12px', borderTop: '1px dashed #CBD5E1', marginTop: '12px' }}>
@@ -206,28 +418,40 @@ export default function MedicoProtocoloDetails() {
                 </div>
               </div>
 
-              {/* Status Read-Only */}
-              <div className="auditor-parecer-wrapper" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                <div className={`auditor-status-readonly ${protocolo.status.replace(' ', '')}`}>
+              {/* Status */}
+              <div className="ficha-status-block">
+                <div
+                  className={`auditor-status-readonly ${protocolo.status.replace(' ', '')}`}
+                  style={{ background: statusStyle.bg, color: statusStyle.color }}
+                >
                   {protocolo.status === 'Em análise' && <Clock size={18}/>}
                   {protocolo.status === 'Autorizado' && <BadgeCheck size={18}/>}
                   {protocolo.status === 'Executado' && <FlaskConical size={18}/>}
                   {protocolo.status === 'Negado' && <XCircle size={18}/>}
                   {protocolo.status === 'Concluído' && <CheckCheck size={18}/>}
-                  Status atual: {protocolo.status.toUpperCase()}
+                  Situação Atual: {protocolo.status.toUpperCase()}
                 </div>
               </div>
-            </div>
 
-            {/* Resultado de Exames quando Executado/Concluído */}
-            {mostrarResultados && (() => {
-              const res = getMockResultados(protocolo.especialidade, protocolo.data_resposta);
-              return (
-                <div className="auditor-details-card">
-                  <div className="resultado-card">
-                    <div className="resultado-card-title">
-                      <FlaskConical size={18} /> Resultado dos Exames — {res.tipo}
-                    </div>
+              {protocolo.status === 'Negado' && protocolo.justificativa_auditor && (
+                <div style={{ marginTop: 12, padding: '12px 16px', background: 'var(--status-negado-bg)', border: '1px solid var(--status-negado)', borderRadius: 10, fontSize: '0.9rem', color: 'var(--status-negado)' }}>
+                  <strong>Justificativa do Auditor:</strong> {protocolo.justificativa_auditor}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Resultado de Exames ── */}
+          {mostrarResultados && (() => {
+            const res = getMockResultados(protocolo.especialidade, protocolo.data_resposta);
+            return (
+              <div className="ficha-section">
+                <div className="ficha-section-header" style={{ background: 'linear-gradient(90deg, #3730A3 0%, #6D28D9 100%)' }}>
+                  <FlaskConical size={15} color="rgba(255,255,255,0.8)" />
+                  <h4>Resultado dos Exames — {res.tipo}</h4>
+                </div>
+                <div className="ficha-section-body">
+                  <div className="resultado-card" style={{ marginTop: 0, border: 'none', background: 'transparent', padding: 0 }}>
                     {res.itens.map((item, i) => (
                       <div key={i} className="resultado-item">
                         <span className="resultado-label">{item.label}</span>
@@ -240,29 +464,42 @@ export default function MedicoProtocoloDetails() {
                     </div>
                   </div>
                 </div>
-              );
-            })()}
+              </div>
+            );
+          })()}
 
-            {/* Parecer Especialista quando Executado/Concluído e for consulta */}
-            {mostrarResultados && ehConsultaEsp && (() => {
-              const parecer = getMockParecer(protocolo);
-              return (
-                <div className="auditor-details-card">
-                  <div className="parecer-card">
-                    <div className="parecer-card-title">
-                      <ClipboardList size={18} /> Parecer do Médico Especialista
-                    </div>
-                    <div className="parecer-texto">{parecer.texto}</div>
-                    <div className="parecer-assinatura">
-                      <span><strong>{parecer.medico}</strong> — {parecer.crm}</span>
-                      <span>{parecer.data}</span>
-                    </div>
+          {/* ── Parecer Especialista ── */}
+          {mostrarResultados && ehConsultaEsp && (() => {
+            const parecer = getMockParecer(protocolo);
+            return (
+              <div className="ficha-section">
+                <div className="ficha-section-header" style={{ background: 'linear-gradient(90deg, #065F46 0%, #059669 100%)' }}>
+                  <ClipboardList size={15} color="rgba(255,255,255,0.8)" />
+                  <h4>Parecer do Médico Especialista</h4>
+                </div>
+                <div className="ficha-section-body">
+                  <div className="ficha-justificativa">{parecer.texto}</div>
+                  <div className="parecer-assinatura" style={{ marginTop: 16 }}>
+                    <span><strong>{parecer.medico}</strong> — {parecer.crm}</span>
+                    <span>{parecer.data}</span>
                   </div>
                 </div>
-              );
-            })()}
+              </div>
+            );
+          })()}
 
-          </div>
+
+
+          {/* ── Anexos de Exames ── */}
+          <ProtocoloAnexos
+            protocoloId={protocolo.id}
+            canUpload={true}
+            canDelete={true}
+            getAnexosFn={getAnexosProtocolo}
+            uploadAnexoFn={uploadAnexoProtocolo}
+            deleteAnexoFn={deleteAnexoProtocolo}
+          />
+
         </div>
       </main>
     </div>

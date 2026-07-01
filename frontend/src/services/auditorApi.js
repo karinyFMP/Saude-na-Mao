@@ -37,7 +37,27 @@ export async function getAuditorProtocolo(id) {
   return response.data;
 }
 
-export async function updateProtocoloStatus(id, status) {
-  const response = await auditorApi.put(`/auditor/protocolos/${id}`, { status });
+export async function updateProtocoloStatus(id, status, justificativa_auditor) {
+  const response = await auditorApi.put(`/auditor/protocolos/${id}`, { status, justificativa_auditor });
+  return response.data;
+}
+
+// --- Anexos ---
+export async function getAnexosProtocolo(protocoloId) {
+  const response = await auditorApi.get(`/protocolos/${protocoloId}/anexos`);
+  return response.data;
+}
+
+export async function uploadAnexoProtocolo(protocoloId, file) {
+  const formData = new FormData();
+  formData.append('arquivo', file);
+  const response = await auditorApi.post(`/protocolos/${protocoloId}/anexos`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+}
+
+export async function deleteAnexoProtocolo(protocoloId, anexoId) {
+  const response = await auditorApi.delete(`/protocolos/${protocoloId}/anexos/${anexoId}`);
   return response.data;
 }

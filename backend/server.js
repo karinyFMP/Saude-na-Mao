@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { initializeDatabase, runAsync, getAsync, allAsync } = require('./database');
 const { validateSchema } = require('./middlewares/validate');
 const { verificarAdmin, JWT_SECRET } = require('./middlewares/verificarAdmin');
@@ -11,9 +14,34 @@ const { registerSchema, loginSchema, updatePacienteSchema, agendamentoSchema } =
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Diretório de uploads
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+// Configuração do Multer (aceita só PDF, máx 10MB)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    cb(null, `${timestamp}_${safe}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') return cb(null, true);
+    cb(new Error('Apenas arquivos PDF são permitidos.'));
+  }
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+// Servir arquivos de upload
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // ============================================================
 // ROTAS DE AUTENTICAÇÃO
@@ -247,7 +275,7 @@ app.get('/api/protocolo/:id', async (req, res) => {
   const protocolo = await getAsync(
     `SELECT
       p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at,
-      p.tipo_protocolo, p.prioridade, p.parecer_medico,
+      p.tipo_protocolo, p.prioridade, p.parecer_medico, p.justificativa_auditor,
       pac.id as paciente_id, pac.nome as paciente_nome, pac.cpf as paciente_cpf, pac.unidade as paciente_unidade, pac.data_nascimento, pac.cartao_sus, pac.telefone,
       m.nome as medico_solicitante_nome, m.especialidade as medico_solicitante_especialidade, m.crm as medico_solicitante_crm
      FROM protocolos p
@@ -373,7 +401,7 @@ app.get('/api/medico/protocolos/:id', async (req, res) => {
   const protocolo = await getAsync(
     `SELECT
       p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at,
-      p.tipo_protocolo, p.prioridade, p.parecer_medico,
+      p.tipo_protocolo, p.prioridade, p.parecer_medico, p.justificativa_auditor,
       pac.id as paciente_id, pac.nome as paciente_nome, pac.cpf as paciente_cpf,
       m.nome as medico_solicitante_nome, m.especialidade as medico_solicitante_especialidade, m.crm as medico_solicitante_crm
      FROM protocolos p
@@ -391,7 +419,7 @@ app.get('/api/medico/protocolos/:id', async (req, res) => {
 // POST /api/medico/protocolos — Cria novo protocolo
 app.post('/api/medico/protocolos', async (req, res) => {
   const {
-    pacienteCpf, tipoProtocolo, especialidade, prioridade, descricao, parecerMedico, medicoId
+    pacienteCpf, tipoProtocolo, especialidade, prioridade, descricao, parecerMedico, medicoId, cid, procedimentos
   } = req.body;
 
   const paciente = await getAsync('SELECT id FROM pacientes WHERE cpf = ?', [pacienteCpf]);
@@ -402,9 +430,9 @@ app.post('/api/medico/protocolos', async (req, res) => {
   const dataPedido = new Date().toISOString().split('T')[0];
 
   const result = await runAsync(
-    `INSERT INTO protocolos (paciente_id, especialidade, descricao, status, data_pedido, tipo_protocolo, prioridade, parecer_medico, medico_id)
-     VALUES (?, ?, ?, 'Em análise', ?, ?, ?, ?, ?)`,
-    [paciente.id, especialidade || '', descricao, dataPedido, tipoProtocolo, prioridade, parecerMedico || null, medicoId]
+    `INSERT INTO protocolos (paciente_id, especialidade, descricao, status, data_pedido, tipo_protocolo, prioridade, parecer_medico, medico_id, cid, procedimentos)
+     VALUES (?, ?, ?, 'Em análise', ?, ?, ?, ?, ?, ?, ?)`,
+    [paciente.id, especialidade || '', descricao, dataPedido, tipoProtocolo, prioridade, parecerMedico || null, medicoId, cid || null, procedimentos || null]
   );
 
   res.status(201).json({ message: 'Protocolo criado com sucesso!', protocoloId: result.lastID });
@@ -473,7 +501,7 @@ app.get('/api/auditor/protocolos/:id', verificarAdmin, async (req, res) => {
   const protocolo = await getAsync(
     `SELECT
       p.id, p.especialidade, p.descricao, p.status, p.data_pedido, p.data_resposta, p.created_at,
-      p.tipo_protocolo, p.prioridade, p.parecer_medico,
+      p.tipo_protocolo, p.prioridade, p.parecer_medico, p.justificativa_auditor,
       pac.id as paciente_id, pac.nome as paciente_nome, pac.cpf as paciente_cpf, pac.unidade as paciente_unidade, pac.data_nascimento, pac.cartao_sus, pac.telefone,
       m.nome as medico_solicitante_nome, m.especialidade as medico_solicitante_especialidade, m.crm as medico_solicitante_crm
      FROM protocolos p
@@ -493,7 +521,7 @@ app.get('/api/auditor/protocolos/:id', verificarAdmin, async (req, res) => {
 // PUT /api/auditor/protocolos/:id — Atualiza status de um protocolo (requer token de servidor)
 app.put('/api/auditor/protocolos/:id', verificarAdmin, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, justificativa_auditor } = req.body;
 
   const statusPermitidos = ['Em análise', 'Autorizado', 'Executado', 'Negado', 'Concluído'];
   if (!status || !statusPermitidos.includes(status)) {
@@ -505,8 +533,8 @@ app.put('/api/auditor/protocolos/:id', verificarAdmin, async (req, res) => {
     : null;
 
   const result = await runAsync(
-    `UPDATE protocolos SET status = ?, data_resposta = ? WHERE id = ?`,
-    [status, dataResposta, id]
+    `UPDATE protocolos SET status = ?, data_resposta = ?, justificativa_auditor = ? WHERE id = ?`,
+    [status, dataResposta, justificativa_auditor || null, id]
   );
 
   if (result.changes === 0) {
@@ -525,11 +553,75 @@ app.put('/api/auditor/protocolos/:id', verificarAdmin, async (req, res) => {
 
 
 // ============================================================
+// ROTAS DE ANEXOS DE PROTOCOLOS
+// ============================================================
+
+// GET /api/protocolos/:id/anexos — Lista anexos de um protocolo
+app.get('/api/protocolos/:id/anexos', async (req, res) => {
+  const { id } = req.params;
+  const anexos = await allAsync(
+    `SELECT id, nome_arquivo, caminho, tamanho, uploaded_at FROM protocolo_anexos WHERE protocolo_id = ? ORDER BY uploaded_at DESC`,
+    [id]
+  );
+  res.json(anexos || []);
+});
+
+// POST /api/protocolos/:id/anexos — Faz upload de um PDF
+app.post('/api/protocolos/:id/anexos', upload.single('arquivo'), async (req, res) => {
+  const { id } = req.params;
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+  }
+
+  const protocolo = await getAsync('SELECT id FROM protocolos WHERE id = ?', [id]);
+  if (!protocolo) {
+    fs.unlink(req.file.path, () => {});
+    return res.status(404).json({ error: 'Protocolo não encontrado.' });
+  }
+
+  const result = await runAsync(
+    `INSERT INTO protocolo_anexos (protocolo_id, nome_arquivo, caminho, tamanho) VALUES (?, ?, ?, ?)`,
+    [id, req.file.originalname, req.file.filename, req.file.size]
+  );
+
+  const anexo = await getAsync('SELECT * FROM protocolo_anexos WHERE id = ?', [result.lastID]);
+  res.status(201).json({ message: 'Arquivo enviado com sucesso!', anexo });
+});
+
+// DELETE /api/protocolos/:id/anexos/:anexoId — Remove um anexo
+app.delete('/api/protocolos/:id/anexos/:anexoId', async (req, res) => {
+  const { id, anexoId } = req.params;
+
+  const anexo = await getAsync(
+    'SELECT * FROM protocolo_anexos WHERE id = ? AND protocolo_id = ?',
+    [anexoId, id]
+  );
+
+  if (!anexo) {
+    return res.status(404).json({ error: 'Anexo não encontrado.' });
+  }
+
+  // Remove arquivo do disco
+  const filePath = path.join(UPLOADS_DIR, anexo.caminho);
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+  await runAsync('DELETE FROM protocolo_anexos WHERE id = ?', [anexoId]);
+  res.json({ message: 'Anexo removido com sucesso.' });
+});
+
+// ============================================================
 // GLOBAL ERROR HANDLER
 // ============================================================
 
 app.use((err, req, res, next) => {
   console.error('Erro na API:', err);
+  if (err.message && err.message.includes('PDF')) {
+    return res.status(400).json({ error: err.message });
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ error: 'Arquivo muito grande. Máximo permitido: 10MB.' });
+  }
   res.status(500).json({ error: 'Erro interno do servidor.' });
 });
 

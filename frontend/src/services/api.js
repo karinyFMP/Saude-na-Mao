@@ -82,3 +82,22 @@ export async function updatePaciente(pacienteId, dados) {
   const response = await api.put(`/pacientes/${pacienteId}`, dados);
   return response.data;
 }
+
+export async function getAnexosProtocolo(protocoloId) {
+  const response = await api.get(`/protocolos/${protocoloId}/anexos`);
+  return response.data;
+}
+
+export async function uploadAnexoProtocolo(protocoloId, file) {
+  const formData = new FormData();
+  formData.append('arquivo', file);
+  const response = await api.post(`/protocolos/${protocoloId}/anexos`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+}
+
+export async function deleteAnexoProtocolo(protocoloId, anexoId) {
+  const response = await api.delete(`/protocolos/${protocoloId}/anexos/${anexoId}`);
+  return response.data;
+}

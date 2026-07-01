@@ -442,3 +442,220 @@
   display: flex;
   justify-content: space-between;
 }
+
+/* ============================================================
+   FICHA DE PROTOCOLO — Layout estilo SISREG
+   ============================================================ */
+
+.ficha-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px var(--space-md) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: fadeInUp 0.35s ease-out both;
+}
+
+/* Bloco: Chave de Confirmação */
+.ficha-confirmacao {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,47,108,0.04);
+}
+
+.ficha-confirmacao-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.ficha-confirmacao-valor {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--primary-dark);
+  line-height: 1;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+/* Seção genérica */
+.ficha-section {
+  border: 1px solid #E2E8F0;
+  border-top: none;
+  overflow: hidden;
+}
+
+.ficha-section:last-child {
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 4px 16px rgba(0,47,108,0.06);
+}
+
+.ficha-section-header {
+  background: linear-gradient(90deg, var(--primary-dark) 0%, #1D4ED8 100%);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ficha-section-header h4 {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: white;
+  margin: 0;
+}
+
+.ficha-section-body {
+  background: white;
+  padding: 20px 28px;
+}
+
+/* Grid de campos dentro de uma seção */
+.ficha-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px 24px;
+}
+
+.ficha-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.ficha-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.ficha-grid--full {
+  grid-template-columns: 1fr;
+}
+
+.ficha-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ficha-field--span2 {
+  grid-column: span 2;
+}
+
+.ficha-field--span3 {
+  grid-column: span 3;
+}
+
+.ficha-field-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748B;
+}
+
+.ficha-field-value {
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.4;
+}
+
+.ficha-field-value--primary {
+  color: var(--primary);
+}
+
+.ficha-field-value--muted {
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+/* Destaque para data/hora de atendimento */
+.ficha-highlight-box {
+  background: #FEF9C3;
+  border: 1px solid #FDE047;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ficha-highlight-box .ficha-field-value {
+  color: #713F12;
+  font-size: 1.05rem;
+}
+
+/* Divider dentro de seção */
+.ficha-divider {
+  border: none;
+  border-top: 1px dashed #E2E8F0;
+  margin: 20px 0;
+}
+
+/* Justificativa / texto longo */
+.ficha-justificativa {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #334155;
+  white-space: pre-wrap;
+  margin-top: 8px;
+}
+
+/* Status badge grande */
+.ficha-status-block {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Seção de ações do auditor */
+.ficha-acoes-section {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-top: none;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Responsivo */
+@media (max-width: 700px) {
+  .ficha-grid, .ficha-grid--4 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ficha-grid--2 {
+    grid-template-columns: 1fr;
+  }
+  .ficha-field--span2,
+  .ficha-field--span3 {
+    grid-column: span 1;
+  }
+  .ficha-wrapper {
+    padding: 16px var(--space-sm) 32px;
+  }
+  .ficha-section-body,
+  .ficha-confirmacao {
+    padding: 16px;
+  }
+}

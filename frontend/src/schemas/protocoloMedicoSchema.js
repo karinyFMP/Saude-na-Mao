@@ -72,12 +72,21 @@ export const protocoloSchema = z
 
     pacienteNome: z
       .string()
-      .min(3, 'Nome do paciente é obrigatório (mín. 3 caracteres).'),
+      .min(3, 'Nome muito curto.'),
+
+    cid: z
+      .string()
+      .min(3, 'CID obrigatório e válido (ex: A00.0).')
+      .max(10, 'CID muito longo.'),
+      
+    procedimento: z
+      .string()
+      .min(5, 'Procedimento deve ter pelo menos 5 caracteres.'),
 
     // --- Protocolo ---
     tipoProtocolo: z
       .string()
-      .min(1, 'Selecione o tipo do protocolo.'),
+      .min(1, 'Selecione o tipo de protocolo.'),
 
     /**
      * REGRA CLÍNICO GERAL / ESPECIALISTA:
