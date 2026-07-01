@@ -144,3 +144,4 @@ A aplicação é dividida em três fluxos principais baseados no tipo de usuári
 ### 3. 🛡️ Auditor (Servidor Administrativo)
 *Acessível na tela de login de servidores/auditoria.*
 - **CPF:** `000.000.000-00` | **Senha:** `admin123` *(auditor)*
+
