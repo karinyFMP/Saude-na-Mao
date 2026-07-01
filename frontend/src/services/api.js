@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:3001/api',
+  baseURL: 'https://saude-na-mao-qt2w.onrender.com/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

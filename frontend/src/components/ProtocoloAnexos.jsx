@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 import { FileText, Upload, Trash2, Download, Loader2, Eye, FilePlus } from "lucide-react";
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL = "https://saude-na-mao-qt2w.onrender.com";
 
 function formatFileSize(bytes) {
   if (!bytes) return "";
